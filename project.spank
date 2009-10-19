@@ -1,0 +1,20 @@
+# --- Project description, etc. ---
+name		Spank
+version		"0.9.1 GIT"
+homepage	"http://nurd.se/~noname/spank"
+author		"Fredrik Hultin"
+email		"noname@nurd.se"
+
+description	"No-hassle build system, mainly for GCC C/C++"
+description	"Spank is a build system (like make, automake, etc.) designed with easy of use in mind, sacrificing some functionality."
+
+# --- Binary target ---
+target		spank
+
+# --- Compiler stuff ---
+template	c++
+sourcedir	src
+cflags 		Iinclude Wall pedantic ggdb
+
+# --- Installer stuff ---
+inst_copy	spank $(inst_prefix)bin/spank

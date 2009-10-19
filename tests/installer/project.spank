@@ -1,0 +1,20 @@
+# --- Project description, etc. ---
+name		Test
+version		"0.1"
+homepage	"http://nurd.se/~noname/"
+author		"Fredrik Hultin"
+email		"noname@nurd.se"
+
+description	"Test package. Does nothing"
+description	"This is a non-project that does nothing at all."
+
+# --- Binary target ---
+target		installtest
+
+# --- Compiler stuff ---
+sourcedir	src
+cflags 		Iinclude Wall pedantic ggdb
+
+# --- Installer stuff ---
+inst_copy	$(target) $(inst_prefix)bin/$(target)
+

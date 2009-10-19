@@ -1,0 +1,3 @@
+template	cs
+target		test.exe
+sourcedir	src
