@@ -258,8 +258,16 @@ std::string Config::getValueStr(std::string variable, std::string addBefore, std
 	return ret;
 }
 
-bool Config::loadConfig(std::string filename)
+bool Config::loadConfig(std::string filename, int depth)
 {
+	LOG("Loading project file " << filename, LOG_INFO);
+
+	if(depth > 255){
+		LOG("Too many includes (255). Are you perhaps including two project files from eachother?", LOG_ERROR);
+		return false;
+	}
+
+
 	std::ifstream in(filename.c_str());
 	std::istringstream parse;
 	std::string get;
@@ -271,8 +279,6 @@ bool Config::loadConfig(std::string filename)
 		//LOG("Can't read from the file, is it empty?", LOG_WARNING);
 		return false;
 	}	
-	
-	LOG("Loading config file " << filename, LOG_INFO);
 
 	//configItems.clear();
 	
@@ -341,6 +347,12 @@ bool Config::loadConfig(std::string filename)
 				if(!addValue(item.variable, item.value.at(x), VAR_PROJECT) && lookUp(item.variable) == -1){
 					LOG("Syntax error in project file '" << filename << "', line: " << lineCount, LOG_FATAL);
 					exit(1);
+				}
+			}
+
+			if(item.variable == "include"){
+				for(std::vector<std::string>::iterator it = item.value.begin(); it != item.value.end(); it++){
+					loadConfig(*it, depth + 1);
 				}
 			}
 		}

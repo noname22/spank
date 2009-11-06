@@ -7,3 +7,5 @@ lib		femtoxml
 prebuildscript	"spank/prebuild.sh 1" "spank/prebuild.sh 2"
 postbuildscript	"spank/postbuild.sh 2"
 oncleanscript	spank/onclean.sh
+
+include		test.spank

@@ -149,6 +149,7 @@ void Spank::setTemplate(int type)
 		PROJECT->addValue("email", "nomail@example.com");
 		PROJECT->addValue("author", "author of $(name)");
 		PROJECT->addValue("description", "$(name) $(version)");
+		PROJECT->addValue("include", "");
 
 		// Installer defaults
 

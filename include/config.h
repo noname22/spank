@@ -56,7 +56,7 @@ class Config{
 
 		bool fromCmdLine(int argc, const char* const* argv);
 
-		bool loadConfig(std::string filename);
+		bool loadConfig(std::string filename, int depth=0);
 		std::string getValueStr(std::string variable, int index = 0, int depth = 0); // depth should be considered private, used for recursion
 
 		std::string getValueStr(std::string variable, std::string separator);
