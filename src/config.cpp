@@ -260,13 +260,10 @@ std::string Config::getValueStr(std::string variable, std::string addBefore, std
 
 bool Config::loadConfig(std::string filename, int depth)
 {
-	LOG("Loading project file " << filename, LOG_INFO);
-
 	if(depth > 255){
 		LOG("Too many includes (255). Are you perhaps including two project files from eachother?", LOG_ERROR);
 		return false;
 	}
-
 
 	std::ifstream in(filename.c_str());
 	std::istringstream parse;
@@ -277,8 +274,11 @@ bool Config::loadConfig(std::string filename, int depth)
 
 	if( !in.good() ){
 		//LOG("Can't read from the file, is it empty?", LOG_WARNING);
+
 		return false;
 	}	
+	
+	LOG("Loading project file " << filename, LOG_INFO);
 
 	//configItems.clear();
 	
@@ -352,7 +352,10 @@ bool Config::loadConfig(std::string filename, int depth)
 
 			if(item.variable == "include"){
 				for(std::vector<std::string>::iterator it = item.value.begin(); it != item.value.end(); it++){
-					loadConfig(*it, depth + 1);
+					if(!loadConfig(*it, depth + 1)){
+						LOG("In file: " << filename << ", line: " << lineCount << " couldn't include '" << *it << "'", LOG_FATAL);
+						exit(1);
+					}
 				}
 			}
 		}
