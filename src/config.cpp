@@ -14,6 +14,7 @@
 #include <cstdlib>
 #include "settings.h"
 #include "tools.h"
+#include "macros.h"
 
 ConfigItem::ConfigItem()
 {
@@ -40,9 +41,10 @@ bool Config::fromCmdLine(int argc, const char* const* argv)
 		parse << argv[i];
 	}
 
-	first=true;
-	bool expect=false;
-	bool addVar=false;
+	first = true;
+	bool expect = false;
+	bool addVar = false;
+	bool actionSet = false;
 	std::string current;
 
 	parse >> tmp;
@@ -79,7 +81,16 @@ bool Config::fromCmdLine(int argc, const char* const* argv)
 				expect = false;
 			}else{
 				if(tmp.substr(0, 1) != "-"){
-					setValue("action", tmp, VAR_CMDLINE);
+					if(!actionSet){
+						setValue("action", tmp, VAR_CMDLINE);
+						actionSet = true;
+					}else{
+						// Something written after action is parsed as a project
+						FORMSTR(tmp2, tmp << ".spank");
+						setValue("project", tmp2, VAR_CMDLINE); 
+						FORMSTR(tmp3, "spank/" << tmp << ".spank");
+						addValue("project", tmp3, VAR_CMDLINE); 
+					}
 				}
 			}
 		}

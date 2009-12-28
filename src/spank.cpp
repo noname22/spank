@@ -214,7 +214,7 @@ void Spank::printBanner(int banner)
 
 		case BANNER_USAGE:
 			LOG("Usage:", LOG_INFO);
-			LOG("\tspank [-args] <action>", LOG_INFO);
+			LOG("\tspank [-args] <action> [<alt. project file>]", LOG_INFO);
 			LOG("", LOG_INFO);
 			LOG("\tActions:", LOG_INFO);
 			LOG("\t\tinstall\tCompiles, links and installs a project", LOG_INFO);
@@ -227,6 +227,9 @@ void Spank::printBanner(int banner)
 			LOG("\t\tclean\tRemoves the target and temp-files", LOG_INFO);
 			LOG("\t\texport\tExports the project to the format given by the 'exporter' argument", LOG_INFO);
 			LOG("\t\t\tValid exporters are: sh (shell script) and makefile (make)", LOG_INFO);
+			LOG("", LOG_INFO);
+			LOG("\tAlternative Project File", LOG_INFO);
+			LOG("\t\t<project file>.spank spank/<project file>.spank is added to the list of files to load", LOG_INFO);
 			LOG("", LOG_INFO);
 			LOG("\tArguments", LOG_INFO);
 			LOG("\t\tTo see available args use 'spank -showconfig'.", LOG_INFO);
@@ -282,11 +285,6 @@ void Spank::handleArgs(int argc, const char* const* argv){
 			}
 		}
 	
-		if(noConfig){
-			LOG("No project file found.", LOG_ERROR);
-			exit(1);
-		}
-
 		std::string tmpl = PROJECT->getValueStr("template", 0);
 
 		if(tmpl == "c++" || tmpl == "cpp"){
@@ -302,6 +300,12 @@ void Spank::handleArgs(int argc, const char* const* argv){
 		if(PROJECT->getValueBool("showconfig", 0)){
 			PROJECT->dumpConfig();
 		}
+		
+		if(noConfig){
+			LOG("No project file found.", LOG_ERROR);
+			exit(1);
+		}
+
 	}
 }
 	
