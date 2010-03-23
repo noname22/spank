@@ -248,7 +248,7 @@ void Spank::printBanner(int banner)
 			LOG("\t\tmakefile (default) - Exports to a make makefile", LOG_INFO);
 			LOG("\t\tsh - Exports to a shell script", LOG_INFO);
 			LOG("", LOG_INFO);
-			LOG("\tInstallers (spank --installers <installer> install):", LOG_INFO);
+			LOG("\tInstallers (spank --installer <installer> install):", LOG_INFO);
 			LOG("\t\tunix (default) - Installs project on a unix like system", LOG_INFO);
 			LOG("\t\tdeb - Makes a .deb file for installation on a dpkg-based system", LOG_INFO);
 			break;
