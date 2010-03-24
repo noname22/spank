@@ -131,58 +131,72 @@ void CompilerGcc::markRecompile(std::string src, std::string obj)
 
 std::string CompilerGcc::getLdCall(bool rlCheck)
 {
-	std::stringstream call;
-	bool link=false;
+	for(int i = 0; PROJECT->getNumValues("targettype"); i++){
 
-	std::string target = PROJECT->getValueStr("target", 0);
+		std::stringstream call;
+		bool link=false;
 
-	call << PROJECT->getValueStr("compiler", 0) << " -o " << target << " ";
-	
-	std::string open = FILES->getTmpDir();
-	
-	open.append("/objectlist");
-	std::ifstream list(open.c_str());
-	
-	bool first=true;
+		std::string target = PROJECT->getValueStr("target", i);
+		std::string targettype = PROJECT->getValueStr("targettype", i);
 
-	char line[SPANK_MAX_LINE];
-
-	while(list.good()){
-		list.getline(line, SPANK_MAX_LINE);
-
-		// If the target is newer than all the object files, don't link
-		if(!rlCheck || FILES->checkRecompile(line, target)){
-			link = true;
-		}
-
-		if(strlen(line) != 0){
-			if(first){
-				first = false;
-			}else{
-				call << " ";
+		if(targettype == "lib-static"){
+			call << PROJECT->getValueStr("ar") << " rcs " << target << " ";
+		}else{
+			if(targettype != "binary"){
+				LOG("unknown target type: '" << targettype << "', assuming binary", LOG_WARNING);
 			}
-			call << line;
+			call << PROJECT->getValueStr("compiler") << " -o " << target << " ";
 		}
-	}
+		
+		
+		std::string open = FILES->getTmpDir();
+		
+		open.append("/objectlist");
+		std::ifstream list(open.c_str());
+		
+		bool first=true;
 
-	if(PROJECT->getValueBool("addhyphen")){
-		call << " " << PROJECT->getValueStr("ldflags", "-", " -", " ");
-	}else{
-		call << " " << PROJECT->getValueStr("ldflags", " ", " ", " ");
-	}
-	
-	for(int p = 0; p < PROJECT->getNumValues("lib"); p++){
-		call << pkgGetFlags(PROJECT->getValueStr("lib", p), false);
-	}
-	
-	LOG("ldcall: " << call.str(), LOG_DEBUG);
+		char line[SPANK_MAX_LINE];
 
-	if(link){
-		return call.str();
-	}else{
-		return "";
+		while(list.good()){
+			list.getline(line, SPANK_MAX_LINE);
+
+			// If the target is newer than all the object files, don't link
+			if(!rlCheck || FILES->checkRecompile(line, target)){
+				link = true;
+			}
+
+			if(strlen(line) != 0){
+				if(first){
+					first = false;
+				}else{
+					call << " ";
+				}
+				call << line;
+			}
+		}
+
+		if(target == "binary"){
+			if(PROJECT->getValueBool("addhyphen")){
+				call << " " << PROJECT->getValueStr("ldflags", "-", " -", " ");
+			}else{
+				call << " " << PROJECT->getValueStr("ldflags", " ", " ", " ");
+			}
+			
+			for(int p = 0; p < PROJECT->getNumValues("lib"); p++){
+				call << pkgGetFlags(PROJECT->getValueStr("lib", p), false);
+			}
+			
+			LOG("ldcall: " << call.str(), LOG_DEBUG);
+		}
+
+		if(link){
+			return call.str();
+		}else{
+			return "";
+		}
+		
 	}
-	
 }
 
 std::string CompilerGcc::pkgGetFlags(std::string lib, bool cflags)
@@ -302,7 +316,6 @@ bool CompilerGcc::localCompile()
 		LOG("Nothing to compile.", LOG_VERBOSE);
 		return true;
 	}
-
 	
 	ForkResult handle;
 	PidList pidList;
@@ -352,5 +365,3 @@ bool CompilerGcc::localCompile()
 
 	return ret;
 }
-
-

@@ -150,6 +150,7 @@ void Spank::setTemplate(int type)
 		PROJECT->addValue("author", "author of $(name)");
 		PROJECT->addValue("description", "$(name) $(version)");
 		PROJECT->addValue("include", "");
+		PROJECT->setValue("targettype", "binary");
 
 		// Installer defaults
 
@@ -308,5 +309,3 @@ void Spank::handleArgs(int argc, const char* const* argv){
 
 	}
 }
-	
-

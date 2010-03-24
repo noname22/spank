@@ -1,0 +1,3 @@
+target		libtest.a
+targettype	lib-static
+sourcedir	src

@@ -445,7 +445,9 @@ std::string Config::getValueStr(std::string variable, int index, int depth)
 		return env;
 	}
 
-	LOG("Couldn't find config variable: '" << variable << "'", LOG_WARNING);
+	LOG("Couldn't find config variable: '" << variable << "'", LOG_FATAL);
+	exit(1);
+
 	return "";
 }
 
@@ -459,7 +461,7 @@ int Config::getValueInt(std::string variable, int index)
 		}
 	}
 
-	LOG("Couldn't find config variable " << variable, LOG_WARNING);
+	LOG("Couldn't find config variable: '" << variable << "'", LOG_FATAL);
 	return -1;
 }
 
