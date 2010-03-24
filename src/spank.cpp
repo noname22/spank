@@ -151,11 +151,14 @@ void Spank::setTemplate(int type)
 		PROJECT->addValue("description", "$(name) $(version)");
 		PROJECT->addValue("include", "");
 		PROJECT->setValue("targettype", "binary");
+		/*PROJECT->setValue("fpic", "fPIC");*/
 
 		// Installer defaults
 
 		PROJECT->addValue("inst_maintainer", "$(author)");
 		PROJECT->addValue("inst_maintainer_email", "$(email)");
+		PROJECT->addValue("inst_packagename", "$(target)");
+		PROJECT->addValue("inst_libpackagename", "lib$(target)");
 
 		PROJECT->addValue("installer", "unix");
 		PROJECT->addValue("inst_sudo", "sudo");

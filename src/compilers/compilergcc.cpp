@@ -84,6 +84,11 @@ std::vector<CList> CompilerGcc::compileList(bool rcCheck)
 							call.append(pkgGetFlags(PROJECT->getValueStr("lib", p), true));
 						}
 
+						/*if(PROJECT->getValueStr("targettype") == "lib-shared"){
+							call.append(PROJECT->getValueStr("fpic"));
+							call.append(" ");
+						}*/
+
 						call.append("-c -o ");
 						call.append(obj);
 						call.append(" ");
@@ -131,71 +136,69 @@ void CompilerGcc::markRecompile(std::string src, std::string obj)
 
 std::string CompilerGcc::getLdCall(bool rlCheck)
 {
-	for(int i = 0; PROJECT->getNumValues("targettype"); i++){
+	std::stringstream call;
+	bool link=false;
 
-		std::stringstream call;
-		bool link=false;
+	std::string target = PROJECT->getValueStr("target");
+	std::string targettype = PROJECT->getValueStr("targettype");
 
-		std::string target = PROJECT->getValueStr("target", i);
-		std::string targettype = PROJECT->getValueStr("targettype", i);
-
-		if(targettype == "lib-static"){
-			call << PROJECT->getValueStr("ar") << " rcs " << target << " ";
-		}else{
-			if(targettype != "binary"){
-				LOG("unknown target type: '" << targettype << "', assuming binary", LOG_WARNING);
-			}
-			call << PROJECT->getValueStr("compiler") << " -o " << target << " ";
+	if(targettype == "lib-static"){
+		call << PROJECT->getValueStr("ar") << " rcs lib" << target << ".a ";
+/*	}else if(targettype == "lib-shared"){
+		call << PROJECT->getValueStr("compiler") << " -o " << target << " ";*/
+	}else{
+		if(targettype != "binary"){
+			LOG("unknown target type: '" << targettype << "', assuming binary", LOG_WARNING);
 		}
-		
-		
-		std::string open = FILES->getTmpDir();
-		
-		open.append("/objectlist");
-		std::ifstream list(open.c_str());
-		
-		bool first=true;
+		call << PROJECT->getValueStr("compiler") << " -o " << target << " ";
+	}
+	
+	
+	std::string open = FILES->getTmpDir();
+	
+	open.append("/objectlist");
+	std::ifstream list(open.c_str());
+	
+	bool first=true;
 
-		char line[SPANK_MAX_LINE];
+	char line[SPANK_MAX_LINE];
 
-		while(list.good()){
-			list.getline(line, SPANK_MAX_LINE);
+	while(list.good()){
+		list.getline(line, SPANK_MAX_LINE);
 
-			// If the target is newer than all the object files, don't link
-			if(!rlCheck || FILES->checkRecompile(line, target)){
-				link = true;
-			}
-
-			if(strlen(line) != 0){
-				if(first){
-					first = false;
-				}else{
-					call << " ";
-				}
-				call << line;
-			}
+		// If the target is newer than all the object files, don't link
+		if(!rlCheck || FILES->checkRecompile(line, target)){
+			link = true;
 		}
 
-		if(target == "binary"){
-			if(PROJECT->getValueBool("addhyphen")){
-				call << " " << PROJECT->getValueStr("ldflags", "-", " -", " ");
+		if(strlen(line) != 0){
+			if(first){
+				first = false;
 			}else{
-				call << " " << PROJECT->getValueStr("ldflags", " ", " ", " ");
+				call << " ";
 			}
-			
-			for(int p = 0; p < PROJECT->getNumValues("lib"); p++){
-				call << pkgGetFlags(PROJECT->getValueStr("lib", p), false);
-			}
-			
-			LOG("ldcall: " << call.str(), LOG_DEBUG);
+			call << line;
 		}
+	}
 
-		if(link){
-			return call.str();
+	if(target == "binary"){
+		if(PROJECT->getValueBool("addhyphen")){
+			call << " " << PROJECT->getValueStr("ldflags", "-", " -", " ");
 		}else{
-			return "";
+			call << " " << PROJECT->getValueStr("ldflags", " ", " ", " ");
 		}
 		
+		for(int p = 0; p < PROJECT->getNumValues("lib"); p++){
+			call << pkgGetFlags(PROJECT->getValueStr("lib", p), false);
+		}
+		
+		LOG("ldcall: " << call.str(), LOG_DEBUG);
+	}
+		
+	if(link){
+		return call.str();
+	}else{
+		return "";
 	}
 }
 

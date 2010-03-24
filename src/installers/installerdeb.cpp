@@ -8,6 +8,7 @@
 // License: GPLv2
 
 #include <fstream>
+#include <cstdlib>
 
 #include "installers/installerdeb.h"
 #include "system.h"
@@ -82,6 +83,7 @@ bool InstallerDeb::copyFiles()
 		FILES->createDir(FILES->pathSplit(to).first);
 		if(!FILES->copy(from, to)){
 			LOG("Couldn't copy file: " << from << " to " << to, LOG_FATAL);
+			exit(1);
 			return false;
 		}
 
@@ -138,7 +140,15 @@ bool InstallerDeb::install(bool fake)
 
 	LOG("Assembling package.", LOG_VERBOSE);
 
-	FORMSTR(pkgName, Tools::toLower(PROJECT->getValueStr("name")) << "-" << Tools::toLower(PROJECT->getValueStr("version")) << "_" << arch << ".deb");
+	std::string packageName;
+
+	if(PROJECT->getValueStr("targettype") != "binary"){
+		packageName = PROJECT->getValueStr("inst_libpackagename");
+	}else{
+		packageName = PROJECT->getValueStr("inst_packagename");
+	}
+
+	FORMSTR(pkgName, Tools::toLower(packageName) << "-" << Tools::toLower(PROJECT->getValueStr("version")) << "_" << arch << ".deb");
 	pkgName = Tools::filenameify(pkgName);
 
 	FORMSTR(packageCmd,

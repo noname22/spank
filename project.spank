@@ -17,4 +17,4 @@ sourcedir	src
 cflags 		Iinclude Wall pedantic ggdb
 
 # --- Installer stuff ---
-inst_copy	spank $(inst_prefix)bin/spank
+inst_copy	$(target) $(inst_prefix)bin/$(target)
