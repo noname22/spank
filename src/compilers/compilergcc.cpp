@@ -149,6 +149,7 @@ std::string CompilerGcc::getLdCall(bool rlCheck)
 	}else{
 		if(targettype != "binary"){
 			LOG("unknown target type: '" << targettype << "', assuming binary", LOG_WARNING);
+			targettype = "binary";
 		}
 		call << PROJECT->getValueStr("compiler") << " -o " << target << " ";
 	}
@@ -181,7 +182,7 @@ std::string CompilerGcc::getLdCall(bool rlCheck)
 		}
 	}
 
-	if(target == "binary"){
+	if(targettype == "binary"){
 		if(PROJECT->getValueBool("addhyphen")){
 			call << " " << PROJECT->getValueStr("ldflags", "-", " -", " ");
 		}else{

@@ -159,9 +159,11 @@ std::string Tools::genCFlags()
 	return flags;
 }
 
+// TODO is this even used anywhere?
 std::string Tools::genLdFlags()
 {
 	std::string ret;
+
 	if(PROJECT->getNumValues("lib")){
 		ret = "`";
 		ret.append(PROJECT->getValueStr("pkg-config"));
