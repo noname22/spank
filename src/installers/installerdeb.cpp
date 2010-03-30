@@ -23,6 +23,8 @@ void InstallerDeb::setPrefix()
 	}
 }
 
+#define IF_EXISTS_ADD(__c, __desc) if(PROJECT->getValueStr(__c) != ""){control << __desc << ": " << PROJECT->getValueStr(__c) << std::endl;}
+
 bool InstallerDeb::writeControlFile()
 {
 	FORMSTR(cFile, controlDir << "/control");
@@ -40,6 +42,16 @@ bool InstallerDeb::writeControlFile()
 	control << "Version: " << Tools::filenameify(Tools::toLower(PROJECT->getValueStr("version"))) << std::endl;
 	control << "Architecture: " << arch << std::endl;
 	control << "Maintainer: " << PROJECT->getValueStr("inst_maintainer") << " <" << PROJECT->getValueStr("inst_maintainer_email") << ">" << std::endl;
+
+	IF_EXISTS_ADD("inst_deb_depends", "Depends");
+	IF_EXISTS_ADD("inst_deb_replaces", "Replaces");
+	IF_EXISTS_ADD("inst_deb_conflicts", "Conflicts");
+	IF_EXISTS_ADD("inst_deb_section", "Section");
+	IF_EXISTS_ADD("inst_deb_priority", "Priority");
+	IF_EXISTS_ADD("inst_deb_installedsize", "Installed-Size");
+	IF_EXISTS_ADD("inst_deb_originalmaintainer", "Original-Maintainer");
+	IF_EXISTS_ADD("inst_deb_source", "Source");
+
 	control << "Description: " << PROJECT->getValueStr("description") << std::endl;
 
 	int num;
@@ -83,6 +95,7 @@ bool InstallerDeb::copyFiles()
 		FILES->createDir(FILES->pathSplit(to).first);
 		if(!FILES->copy(from, to)){
 			LOG("Couldn't copy file: " << from << " to " << to, LOG_FATAL);
+			/* TODO gah, exceptions */
 			exit(1);
 			return false;
 		}

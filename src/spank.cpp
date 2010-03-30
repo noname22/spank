@@ -174,6 +174,17 @@ void Spank::setTemplate(int type)
 		PROJECT->addValue("inst_mkdir", "");
 
 		PROJECT->addValue("inst_arch", "host");
+
+		// Deb installer
+
+		PROJECT->addValue("inst_deb_depends", "");
+		PROJECT->addValue("inst_deb_replaces", "");
+		PROJECT->addValue("inst_deb_conflicts", "");
+		PROJECT->addValue("inst_deb_section", "");
+		PROJECT->addValue("inst_deb_priority", "");
+		PROJECT->addValue("inst_deb_installedsize", "");
+		PROJECT->addValue("inst_deb_originalmaintainer", "");
+		PROJECT->addValue("inst_deb_source", "");
 	}
 		
 	// Template specific defaults
