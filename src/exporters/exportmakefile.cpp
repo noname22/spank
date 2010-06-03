@@ -53,8 +53,9 @@ bool ExportMakefile::exp(std::string fileName)
 	for(int i=0; i < (int)cList.size(); i++){
 		file << " " << cList.at(i).obj.c_str();
 	}
+
 	file << std::endl << "CFLAGS= " << Tools::genCFlags() << std::endl;
-	file << "LDFLAGS= " << Tools::genLdFlags() << std::endl;
+	file << "LDCALL= " << COMPILER->getLdCall(false) << std::endl;
 	file << "COMPILER=" << PROJECT->getValueStr("compiler", 0) << std::endl;
 	file << "TARGET=" << PROJECT->getValueStr("target", 0) << std::endl << std::endl;
 	file << "all: " << PROJECT->getValueStr("target", 0) << std::endl << std::endl;
@@ -67,7 +68,7 @@ bool ExportMakefile::exp(std::string fileName)
 //	file << "$(SRCS):" << std::endl << "\t$(COMPILER) -c $(CFLAGS) -c $(SRCS)" << std::endl << std::endl;
 	
 	file << PROJECT->getValueStr("target", 0) << ": $(OBJS)" << std::endl;
-	file << std::endl << "\t$(COMPILER) $(OBJS) $(LDFLAGS) -o $(TARGET)" << std::endl << std::endl;
+	file << std::endl << "\t $(LDCALL)" << std::endl << std::endl;
 	
 	file << "clean:" << std::endl;
 	

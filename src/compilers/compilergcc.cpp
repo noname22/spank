@@ -84,10 +84,10 @@ std::vector<CList> CompilerGcc::compileList(bool rcCheck)
 							call.append(pkgGetFlags(PROJECT->getValueStr("lib", p), true));
 						}
 
-						/*if(PROJECT->getValueStr("targettype") == "lib-shared"){
+						if(PROJECT->getValueStr("targettype") == "lib-shared"){
 							call.append(PROJECT->getValueStr("fpic"));
 							call.append(" ");
-						}*/
+						}
 
 						call.append("-c -o ");
 						call.append(obj);
@@ -144,8 +144,8 @@ std::string CompilerGcc::getLdCall(bool rlCheck)
 
 	if(targettype == "lib-static"){
 		call << PROJECT->getValueStr("ar") << " rcs lib" << target << ".a ";
-/*	}else if(targettype == "lib-shared"){
-		call << PROJECT->getValueStr("compiler") << " -o " << target << " ";*/
+	}else if(targettype == "lib-shared"){
+		call << PROJECT->getValueStr("compiler") << " -shared -o " << target << " ";
 	}else{
 		if(targettype != "binary"){
 			LOG("unknown target type: '" << targettype << "', assuming binary", LOG_WARNING);
@@ -182,12 +182,13 @@ std::string CompilerGcc::getLdCall(bool rlCheck)
 		}
 	}
 
+	if(PROJECT->getValueBool("addhyphen")){
+		call << " " << PROJECT->getValueStr("ldflags", "-", " -", " ");
+	}else{
+		call << " " << PROJECT->getValueStr("ldflags", " ", " ", " ");
+	}
+
 	if(targettype == "binary"){
-		if(PROJECT->getValueBool("addhyphen")){
-			call << " " << PROJECT->getValueStr("ldflags", "-", " -", " ");
-		}else{
-			call << " " << PROJECT->getValueStr("ldflags", " ", " ", " ");
-		}
 		
 		for(int p = 0; p < PROJECT->getNumValues("lib"); p++){
 			call << pkgGetFlags(PROJECT->getValueStr("lib", p), false);

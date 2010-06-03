@@ -151,7 +151,7 @@ void Spank::setTemplate(int type)
 		PROJECT->addValue("description", "$(name) $(version)");
 		PROJECT->addValue("include", "");
 		PROJECT->setValue("targettype", "binary");
-		/*PROJECT->setValue("fpic", "fPIC");*/
+		PROJECT->setValue("fpic", "-fPIC");
 
 		// Installer defaults
 
