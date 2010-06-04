@@ -188,14 +188,11 @@ std::string CompilerGcc::getLdCall(bool rlCheck)
 		call << " " << PROJECT->getValueStr("ldflags", " ", " ", " ");
 	}
 
-	if(targettype == "binary"){
-		
-		for(int p = 0; p < PROJECT->getNumValues("lib"); p++){
-			call << pkgGetFlags(PROJECT->getValueStr("lib", p), false);
-		}
-		
-		LOG("ldcall: " << call.str(), LOG_DEBUG);
+	for(int p = 0; p < PROJECT->getNumValues("lib"); p++){
+		call << pkgGetFlags(PROJECT->getValueStr("lib", p), false);
 	}
+
+	LOG("ldcall: " << call.str(), LOG_DEBUG);
 		
 	if(link){
 		return call.str();
