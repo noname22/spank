@@ -188,8 +188,10 @@ std::string CompilerGcc::getLdCall(bool rlCheck)
 		call << " " << PROJECT->getValueStr("ldflags", " ", " ", " ");
 	}
 
-	for(int p = 0; p < PROJECT->getNumValues("lib"); p++){
-		call << pkgGetFlags(PROJECT->getValueStr("lib", p), false);
+	if(targettype != "lib-static"){
+		for(int p = 0; p < PROJECT->getNumValues("lib"); p++){
+			call << pkgGetFlags(PROJECT->getValueStr("lib", p), false);
+		}
 	}
 
 	LOG("ldcall: " << call.str(), LOG_DEBUG);
