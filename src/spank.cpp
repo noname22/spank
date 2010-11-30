@@ -127,7 +127,7 @@ void Spank::setTemplate(int type)
 		PROJECT->setValue("showconfig", "false");
 		PROJECT->setValue("ldflags", "");
 		PROJECT->setValue("exclude", "");
-		PROJECT->setValue("rccheck", "pp");
+		PROJECT->setValue("rccheck", "recursive");
 		PROJECT->setValue("pp", "$(compiler) -E");
 		PROJECT->setValue("spankdefs", "true");
 		PROJECT->setValue("exporter", "makefile");

@@ -25,6 +25,7 @@ class CompilerGcc: public Compiler
 		std::vector<CList> compileList(bool rcCheck = true);
 		std::string getLdCall(bool rlCheck);
 	private:
+		bool checkRecompileRecursive(std::string src, std::string obj, int depth = 0);
 		bool checkRecompile(std::string src, std::string obj);
 		void markRecompile(std::string src, std::string obj);
 		bool checkLibs();
@@ -33,7 +34,10 @@ class CompilerGcc: public Compiler
 
 		std::string getPercent(int current, int of);
 
+		void setIncludePaths();
+
 		bool hasPkgConfig;
+		std::vector<std::string> qIncPaths, incPaths;
 };
 
 #endif

@@ -14,6 +14,7 @@
 #include <sstream>
 #include <algorithm>
 #include <cstring>
+#include <stdexcept>
 
 #include "system.h"
 #include "settings.h"
@@ -37,12 +38,12 @@ std::vector<CList> CompilerGcc::compileList(bool rcCheck)
 
 	open.append("/filelist");
 	std::ifstream list(open.c_str());
-	
+
 	objListName.append("/objectlist");
 	std::ofstream objectList(objListName.c_str());
 
 	int count=0, srcCount=0;
-	
+
 	cList.clear();
 	std::vector<std::string> dupCheck;
 	bool noDup=true;
@@ -114,6 +115,134 @@ std::vector<CList> CompilerGcc::compileList(bool rcCheck)
 	return cList;	
 }
 
+void CompilerGcc::setIncludePaths()
+{
+	if(incPaths.size()){ return; }
+
+	std::string out;
+
+	FORMSTR(cmd, "echo | " << PROJECT->getValueStr("compiler") << " -E - -v");
+
+	Tools::execute(cmd, 0, &out);
+	std::stringstream s(out);
+
+	LOG(out, LOG_DEBUG);
+
+	std::string line = Tools::getLineSs(s);
+
+
+	int panic = 256;
+	int c = 0;
+
+	try{
+
+		// Skip input to include directories
+		do{
+			if(c++ > panic){ throw std::runtime_error(""); }
+			line = Tools::getLineSs(s);;
+		}while(line != "#include \"...\" search starts here:");
+
+		// Read "" include directories until we get to <>
+		for(;;){
+			if(c++ > panic){ throw std::runtime_error(""); }
+
+			line = Tools::getLineSs(s);
+			if(line == "#include <...> search starts here:"){
+				break;
+			}
+			qIncPaths.push_back(line);
+		}
+		
+		for(;;){
+			if(c++ > panic){ throw std::runtime_error(""); }
+
+			line = Tools::getLineSs(s);
+			if(line == "End of search list."){
+				break;
+			}
+			incPaths.push_back(line);
+		}
+	}
+	
+	catch(std::runtime_error e)
+	{
+		LOG("Unexpected output from the preprocessor", LOG_FATAL);
+		exit(1);
+	}
+	
+	
+	LOG("qinc", LOG_DEBUG);
+	for(std::vector<std::string>::iterator it = qIncPaths.begin(); it != qIncPaths.end(); it++){
+		LOG((*it), LOG_DEBUG);
+	}
+	
+	LOG("inc", LOG_DEBUG);
+	for(std::vector<std::string>::iterator it = incPaths.begin(); it != qIncPaths.end(); it++){
+		LOG((*it), LOG_DEBUG);
+	}
+
+	exit(1);
+}
+
+bool CompilerGcc::checkRecompileRecursive(std::string src, std::string obj, int depth)
+{
+	if(FILES->checkRecompile(src, obj)){
+		return true;
+	}
+
+	if(depth > SPANK_MAX_RECURSE){
+		LOG("Recusive recompile checker exceeded maximum depth (" << SPANK_MAX_RECURSE << ")", LOG_WARNING);
+		return false;
+	}
+
+	setIncludePaths();
+
+	std::fstream f(src.c_str());
+
+	int lineNum = 1;
+	while(f.good()){
+		bool isInclude = false, localFirst = false;
+		char buffer[SPANK_MAX_LINE];
+		f.getline(buffer, SPANK_MAX_LINE);
+		std::string line(buffer);
+		std::stringstream s(line);
+
+		std::string parse;
+
+		s >> parse;
+
+		if(parse == "#"){
+			// check for: "#    include"
+			s >> parse;
+			if(parse == "include");
+			isInclude = true;
+		}else if(parse == "#include"){
+			// check for: "#include"
+			isInclude = true;
+		}
+
+		if(isInclude){
+			s >> parse;
+			LOG(parse, LOG_DEBUG);
+			if(parse.size() < 3){
+				LOG("Recursive recompile checker couldn't parse include directive, syntax error on line " << lineNum << "?", LOG_WARNING);
+			}
+
+			if(parse.at(0) == '\"'){
+				localFirst = true;
+			}
+
+			
+		}
+
+	
+		lineNum++;	
+	}
+
+	exit(1);
+	return false;
+}
+
 bool CompilerGcc::checkRecompile(std::string src, std::string obj)
 {
 	// wrapper from files-function depending on method
@@ -121,6 +250,8 @@ bool CompilerGcc::checkRecompile(std::string src, std::string obj)
 
 	if(PROJECT->getValueStr("rccheck", 0) == "pp"){
 		return (FILES->checkRecompilePp(src));
+	}else if(PROJECT->getValueStr("rccheck", 0) == "recursive"){
+		return checkRecompileRecursive(src, obj);
 	}else{
 		return FILES->checkRecompile(src, obj);
 	}

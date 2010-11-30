@@ -19,6 +19,7 @@
 #include "project.h"
 #include "macros.h"
 #include "system.h"
+#include "settings.h"
 
 // UNIX stuff
 
@@ -38,6 +39,13 @@ void Tools::forkDo(std::string cmd, PidList& pidList, int id)
 	p.id = id;
 	p.cmd = cmd;
 	pidList.push(p);
+}
+
+std::string Tools::getLineSs(std::stringstream& stream)
+{
+	char buffer[SPANK_MAX_LINE];
+	stream.getline(buffer, SPANK_MAX_LINE);
+	return std::string(buffer);
 }
 
 ForkResult Tools::wait(PidList& pidList, unsigned int max)
