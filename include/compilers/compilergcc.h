@@ -30,14 +30,17 @@ class CompilerGcc: public Compiler
 		void markRecompile(std::string src, std::string obj);
 		bool checkLibs();
 		bool pkgCall(std::string switches);
-		std::string pkgGetFlags(std::string lib, bool cflags);
+		
+		std::string pkgGetFlags(std::string lib, bool cflags); // TODO remove this
 
 		std::string getPercent(int current, int of);
 
 		void setIncludePaths();
+		std::string lookUpIncludeFile(std::string filename, bool quoted);
 
 		bool hasPkgConfig;
-		std::vector<std::string> qIncPaths, incPaths;
+		enum IncPathType { Quoted, Bracket };
+		std::vector<std::string> incPaths[2]; // first is quoted paths, second is <> paths
 };
 
 #endif

@@ -41,7 +41,7 @@ void Tools::forkDo(std::string cmd, PidList& pidList, int id)
 	pidList.push(p);
 }
 
-std::string Tools::getLineSs(std::stringstream& stream)
+std::string Tools::getLineStream(std::istream& stream)
 {
 	char buffer[SPANK_MAX_LINE];
 	stream.getline(buffer, SPANK_MAX_LINE);

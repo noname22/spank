@@ -50,7 +50,7 @@ class Tools
 		static std::string genLdFlags();
 		static std::string toLower(std::string in);
 		static std::string filenameify(std::string str);
-		static std::string getLineSs(std::stringstream& stream);
+		static std::string getLineStream(std::istream& stream);
 
 		static int execute(std::string cmd, std::string* std = NULL, std::string* out = NULL);
 		static int execute(std::string cmd, std::string stdFile, std::string errFile = "/dev/null");

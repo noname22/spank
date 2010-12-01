@@ -81,9 +81,10 @@ std::vector<CList> CompilerGcc::compileList(bool rcCheck)
 						call.append(" ");
 						call.append(Tools::genCFlags());
 
-						for(int p = 0; p < PROJECT->getNumValues("lib"); p++){
+						// already taken care of in genCFlags
+						/*for(int p = 0; p < PROJECT->getNumValues("lib"); p++){
 							call.append(pkgGetFlags(PROJECT->getValueStr("lib", p), true));
-						}
+						}*/
 
 						if(PROJECT->getValueStr("targettype") == "lib-shared"){
 							call.append(PROJECT->getValueStr("fpic"));
@@ -117,50 +118,25 @@ std::vector<CList> CompilerGcc::compileList(bool rcCheck)
 
 void CompilerGcc::setIncludePaths()
 {
-	if(incPaths.size()){ return; }
+	if(incPaths[Bracket].size()){ return; }
 
+	FORMSTR(cmd, "echo | " << PROJECT->getValueStr("compiler") << " " << Tools::genCFlags() << " -E - -v");
 	std::string out;
-
-	FORMSTR(cmd, "echo | " << PROJECT->getValueStr("compiler") << " -E - -v");
 
 	Tools::execute(cmd, 0, &out);
 	std::stringstream s(out);
 
-	LOG(out, LOG_DEBUG);
-
-	std::string line = Tools::getLineSs(s);
-
-
-	int panic = 256;
-	int c = 0;
-
+	int panic = 256, c = 0, i = -1;
 	try{
-
-		// Skip input to include directories
-		do{
-			if(c++ > panic){ throw std::runtime_error(""); }
-			line = Tools::getLineSs(s);;
-		}while(line != "#include \"...\" search starts here:");
-
-		// Read "" include directories until we get to <>
+		// Read include directories
 		for(;;){
 			if(c++ > panic){ throw std::runtime_error(""); }
 
-			line = Tools::getLineSs(s);
-			if(line == "#include <...> search starts here:"){
-				break;
-			}
-			qIncPaths.push_back(line);
-		}
-		
-		for(;;){
-			if(c++ > panic){ throw std::runtime_error(""); }
+			std::string line = Tools::getLineStream(s);
 
-			line = Tools::getLineSs(s);
-			if(line == "End of search list."){
-				break;
-			}
-			incPaths.push_back(line);
+			if(line == "#include <...> search starts here:" || line == "#include \"...\" search starts here:"){ i++; continue; }
+			if(line == "End of search list."){ break; }
+			if(i >= 0){ incPaths[i].push_back(line.substr(1)); }
 		}
 	}
 	
@@ -169,29 +145,52 @@ void CompilerGcc::setIncludePaths()
 		LOG("Unexpected output from the preprocessor", LOG_FATAL);
 		exit(1);
 	}
-	
-	
-	LOG("qinc", LOG_DEBUG);
-	for(std::vector<std::string>::iterator it = qIncPaths.begin(); it != qIncPaths.end(); it++){
-		LOG((*it), LOG_DEBUG);
+
+	LOG("Found include paths: ", LOG_DEBUG);
+	for(i = 0; i < 2; i++){
+		for(std::vector<std::string>::iterator it = incPaths[i].begin(); it != incPaths[i].end(); it++){
+			LOG((*it), LOG_DEBUG);
+		}
 	}
-	
-	LOG("inc", LOG_DEBUG);
-	for(std::vector<std::string>::iterator it = incPaths.begin(); it != qIncPaths.end(); it++){
-		LOG((*it), LOG_DEBUG);
+}
+
+std::string CompilerGcc::lookUpIncludeFile(std::string filename, bool quoted)
+{
+	IncPathType order[2] = {Bracket, Quoted};
+	if(quoted){
+		order[0] = Quoted; order[1] = Bracket;
+
+		if(FILES->fileExists(filename)){
+			LOG("Found file as: " << filename, LOG_DEBUG);
+			return filename;
+		}
 	}
 
-	exit(1);
+	for(int i = 0; i < 2; i++){
+		for(std::vector<std::string>::iterator it = incPaths[order[i]].begin(); it != incPaths[order[i]].end(); it++){
+			FORMSTR(test, (*it) << "/" << filename);
+			LOG("Trying: " << test, LOG_DEBUG);
+			if(FILES->fileExists(test)){
+				LOG("exists", LOG_DEBUG);
+				return test;
+			}
+		}
+	}
+
+	throw std::runtime_error("no file");
 }
 
 bool CompilerGcc::checkRecompileRecursive(std::string src, std::string obj, int depth)
 {
+	LOG("now checking: " << src << " for object " << obj, LOG_DEBUG);
+
 	if(FILES->checkRecompile(src, obj)){
 		return true;
 	}
 
 	if(depth > SPANK_MAX_RECURSE){
 		LOG("Recusive recompile checker exceeded maximum depth (" << SPANK_MAX_RECURSE << ")", LOG_WARNING);
+		LOG("Circular include?", LOG_WARNING);
 		return false;
 	}
 
@@ -200,12 +199,10 @@ bool CompilerGcc::checkRecompileRecursive(std::string src, std::string obj, int 
 	std::fstream f(src.c_str());
 
 	int lineNum = 1;
+
 	while(f.good()){
 		bool isInclude = false, localFirst = false;
-		char buffer[SPANK_MAX_LINE];
-		f.getline(buffer, SPANK_MAX_LINE);
-		std::string line(buffer);
-		std::stringstream s(line);
+		std::stringstream s(Tools::getLineStream(f));
 
 		std::string parse;
 
@@ -222,9 +219,13 @@ bool CompilerGcc::checkRecompileRecursive(std::string src, std::string obj, int 
 		}
 
 		if(isInclude){
-			s >> parse;
-			LOG(parse, LOG_DEBUG);
-			if(parse.size() < 3){
+			parse = Tools::getLineStream(s);
+
+			size_t first = parse.find_first_of("\"<"); 
+			size_t last = parse.find_last_of("\">"); 
+
+			if(first || last)
+			if(parse.size() < 3 || first == std::string::npos || last == std::string::npos){
 				LOG("Recursive recompile checker couldn't parse include directive, syntax error on line " << lineNum << "?", LOG_WARNING);
 			}
 
@@ -232,14 +233,22 @@ bool CompilerGcc::checkRecompileRecursive(std::string src, std::string obj, int 
 				localFirst = true;
 			}
 
-			
+			std::string filename = parse.substr(first + 1, last - 2);
+			try { filename = lookUpIncludeFile(filename, localFirst); }
+
+			catch(...){
+				LOG("Recursive compile checker coulnd't find the included file: '" << filename << "' (at line " << lineNum << ")", LOG_WARNING);
+			}
+
+			if(checkRecompileRecursive(filename, obj, depth + 1)){
+				return true;
+			}
 		}
 
 	
 		lineNum++;	
-	}
+	} 
 
-	exit(1);
 	return false;
 }
 
@@ -334,6 +343,7 @@ std::string CompilerGcc::getLdCall(bool rlCheck)
 	}
 }
 
+// TODO, remove this
 std::string CompilerGcc::pkgGetFlags(std::string lib, bool cflags)
 {
 	std::string call;
