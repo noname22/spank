@@ -120,7 +120,14 @@ void CompilerGcc::setIncludePaths()
 {
 	if(incPaths[Bracket].size()){ return; }
 
-	FORMSTR(cmd, "echo | " << PROJECT->getValueStr("compiler") << " " << Tools::genCFlags() << " -E - -v");
+	std::string dashx = "";
+
+	// TODO hackish
+	if(PROJECT->getValueStr("compiler").find("++") != std::string::npos){
+		dashx = "-x c++";
+	}
+
+	FORMSTR(cmd, "echo | " << PROJECT->getValueStr("compiler") << " " << Tools::genCFlags() << " -E " << dashx << " - -v");
 	std::string out;
 
 	Tools::execute(cmd, 0, &out);
@@ -199,10 +206,36 @@ bool CompilerGcc::checkRecompileRecursive(std::string src, std::string obj, int 
 	std::fstream f(src.c_str());
 
 	int lineNum = 1;
+	bool inComment = false;
 
 	while(f.good()){
 		bool isInclude = false, localFirst = false;
-		std::stringstream s(Tools::getLineStream(f));
+
+		std::string line = Tools::getLineStream(f);
+
+
+		// Cut out C style comments
+		
+		size_t commentStart = line.find("/*");
+		size_t commentEnd = line.find("*/");
+
+		if(inComment){
+			commentStart = 0;
+		}else if(commentStart != std::string::npos){
+			inComment = true;
+		}
+
+		if(inComment){
+			if(commentEnd == std::string::npos){
+				commentEnd = line.size() - 3;
+			}else{
+				inComment = false;
+			}
+
+			line = line.substr(commentStart, commentEnd + 2);
+		}
+
+		std::stringstream s(line);
 
 		std::string parse;
 
@@ -211,13 +244,14 @@ bool CompilerGcc::checkRecompileRecursive(std::string src, std::string obj, int 
 		if(parse == "#"){
 			// check for: "#    include"
 			s >> parse;
-			if(parse == "include");
-			isInclude = true;
+			if(parse == "include"){
+				isInclude = true;
+			}
 		}else if(parse == "#include"){
 			// check for: "#include"
 			isInclude = true;
 		}
-
+	
 		if(isInclude){
 			parse = Tools::getLineStream(s);
 
@@ -226,7 +260,9 @@ bool CompilerGcc::checkRecompileRecursive(std::string src, std::string obj, int 
 
 			if(first || last)
 			if(parse.size() < 3 || first == std::string::npos || last == std::string::npos){
-				LOG("Recursive recompile checker couldn't parse include directive, syntax error on line " << lineNum << "?", LOG_WARNING);
+				LOG("Recursive recompile checker couldn't parse include directive, syntax error in " << src << ":" << lineNum << "?", LOG_WARNING);
+				LOG("Line: " << line, LOG_VERBOSE);
+				continue;
 			}
 
 			if(parse.at(0) == '\"'){
@@ -237,7 +273,7 @@ bool CompilerGcc::checkRecompileRecursive(std::string src, std::string obj, int 
 			try { filename = lookUpIncludeFile(filename, localFirst); }
 
 			catch(...){
-				LOG("Recursive compile checker coulnd't find the included file: '" << filename << "' (at line " << lineNum << ")", LOG_WARNING);
+				LOG("Recursive compile checker coulnd't find the included file: '" << filename << "' (at line " << lineNum << ")", LOG_VERBOSE);
 			}
 
 			if(checkRecompileRecursive(filename, obj, depth + 1)){
