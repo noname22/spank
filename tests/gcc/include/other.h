@@ -3,4 +3,8 @@
 
 int function(int arg);
 
+#ifdef NEVER
+#include <doesntexist.h>
+#endif
+
 #endif
