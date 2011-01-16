@@ -25,7 +25,7 @@ class CompilerGcc: public Compiler
 		std::vector<CList> compileList(bool rcCheck = true);
 		std::string getLdCall(bool rlCheck);
 	private:
-		bool checkRecompileRecursive(std::string src, std::string obj, int depth = 0);
+		bool checkRecompileRecursive(std::vector<std::string> stack, std::string src, std::string obj, int depth = 0);
 		bool checkRecompile(std::string src, std::string obj);
 		void markRecompile(std::string src, std::string obj);
 		bool checkLibs();

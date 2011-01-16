@@ -187,9 +187,11 @@ std::string CompilerGcc::lookUpIncludeFile(std::string filename, bool quoted)
 	throw std::runtime_error("no file");
 }
 
-bool CompilerGcc::checkRecompileRecursive(std::string src, std::string obj, int depth)
+bool CompilerGcc::checkRecompileRecursive(std::vector<std::string> stack, std::string src, std::string obj, int depth)
 {
-	LOG("now checking: " << src << " for object " << obj, LOG_DEBUG);
+	stack.push_back(src);
+
+	LOG("now checking: " << src << " for object " << obj << " at depth " << depth, LOG_DEBUG);
 
 	if(FILES->checkRecompile(src, obj)){
 		return true;
@@ -276,8 +278,25 @@ bool CompilerGcc::checkRecompileRecursive(std::string src, std::string obj, int 
 				LOG("Recursive compile checker coulnd't find the included file: '" << filename << "' (at line " << lineNum << ")", LOG_VERBOSE);
 			}
 
-			if(checkRecompileRecursive(filename, obj, depth + 1)){
-				return true;
+			// Check for circluar includes
+			// TODO windows implications with case insensitivity
+			try {
+				for(std::vector<std::string>::iterator it = stack.begin(); it != stack.end(); it++){
+					if(filename == (*it)){
+						throw std::runtime_error("circular");
+					}
+				}
+
+				if(checkRecompileRecursive(stack, filename, obj, depth + 1)){
+					return true;
+				}
+			} catch (std::runtime_error) {
+				LOG("The file " << filename << " is includes itself (directly or indirectly). See verbose output (-verbosity 1) for more info.", LOG_WARNING);
+				LOG("current include stack: ", LOG_VERBOSE);
+				for(std::vector<std::string>::iterator it = stack.begin(); it != stack.end(); it++){
+					LOG(*it, LOG_VERBOSE);
+				}
+				LOG("then trying to include: " << filename, LOG_VERBOSE);
 			}
 		}
 
@@ -296,7 +315,8 @@ bool CompilerGcc::checkRecompile(std::string src, std::string obj)
 	if(PROJECT->getValueStr("rccheck", 0) == "pp"){
 		return (FILES->checkRecompilePp(src));
 	}else if(PROJECT->getValueStr("rccheck", 0) == "recursive"){
-		return checkRecompileRecursive(src, obj);
+		std::vector<std::string> stack;
+		return checkRecompileRecursive(stack, src, obj);
 	}else{
 		return FILES->checkRecompile(src, obj);
 	}
