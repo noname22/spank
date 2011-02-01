@@ -133,7 +133,7 @@ void Spank::setTemplate(int type)
 		PROJECT->setValue("exporter", "makefile");
 		PROJECT->setValue("exportfile", "");
 		PROJECT->setValue("lib", "");
-		PROJECT->setValue("pkg-config", "export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:.:spank && pkg-config");
+		PROJECT->setValue("pkg-config", "PKG_CONFIG_PATH=$PKG_CONFIG_PATH:.:spank pkg-config");
 		PROJECT->setValue("tar", "tar");
 		PROJECT->setValue("ar", "ar");
 		PROJECT->setValue("stripsrc", "false");

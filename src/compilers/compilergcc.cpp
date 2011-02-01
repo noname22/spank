@@ -460,13 +460,15 @@ bool CompilerGcc::checkLibs()
 		}
 	}
 
+	bool ret = true;
+
 	for(int i=0; i < PROJECT->getNumValues("lib"); i++){
 		if(!pkgCall(PROJECT->getValueStr("lib", i))){
 			LOG("Missing library '" << PROJECT->getValueStr("lib", i) << "'", LOG_ERROR);
-			return false;
+			ret = false;
 		}
 	}
-	return true;
+	return ret;
 }
 
 bool CompilerGcc::localLink()

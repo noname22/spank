@@ -138,7 +138,7 @@ std::string Tools::genCFlags()
 		flags = PROJECT->getValueStr("cflags", " ", " ", " ");
 	}
 
-	if(PROJECT->getValueBool("spankdefs", 0)){
+	if(PROJECT->getValueBool("spankdefs")){
 
 		std::string compiler = PROJECT->getValueStr("compiler");
 
@@ -156,14 +156,14 @@ std::string Tools::genCFlags()
 			ADDSTR(flags, "-D'SPANK_PREFIX=\"" << PROJECT->getValueStr("inst_prefix") << "\"' ");
 
 		}
-
-		if(PROJECT->getNumValues("lib")){
-			flags.append(" `");
-			flags.append(PROJECT->getValueStr("pkg-config"));
-			flags.append(PROJECT->getValueStr("lib", " --cflags ", " ", "`"));
-		}
-
 	}
+		
+	if(PROJECT->getNumValues("lib")){
+		flags.append(" `");
+		flags.append(PROJECT->getValueStr("pkg-config"));
+		flags.append(PROJECT->getValueStr("lib", " --cflags ", " ", "`"));
+	}
+
 	return flags;
 }
 
