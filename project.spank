@@ -1,6 +1,6 @@
 # --- Project description, etc. ---
 name		Spank
-version		"0.9.4"
+version		"0.9.5"
 homepage	"http://nurd.se/~noname/spank"
 author		"Fredrik Hultin"
 email		"noname@nurd.se"
