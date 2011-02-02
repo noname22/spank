@@ -172,6 +172,7 @@ std::string Tools::genLdFlags()
 {
 	std::string ret;
 
+	
 	if(PROJECT->getNumValues("lib")){
 		ret = "`";
 		ret.append(PROJECT->getValueStr("pkg-config"));

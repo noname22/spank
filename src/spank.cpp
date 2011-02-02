@@ -232,9 +232,6 @@ void Spank::printBanner(int banner)
 			LOG("\tspank [-args] <action> [<alt. project file>]", LOG_INFO);
 			LOG("", LOG_INFO);
 			LOG("\tActions:", LOG_INFO);
-			LOG("\t\tinstall\tCompiles, links and installs a project", LOG_INFO);
-			LOG("\t\tfake-install\tFakes an install (prints the install procedure to screen instead of doing anything)", LOG_INFO);
-			LOG("\t\tinstall\tCompiles, links and installs a project", LOG_INFO);
 			LOG("\t\tbuild\tCompiles and links a project", LOG_INFO);
 			LOG("\t\trebuild\tCleans, compiles and links a project", LOG_INFO);
 			LOG("\t\tcompile\tCompiles the project sources", LOG_INFO);
@@ -242,6 +239,8 @@ void Spank::printBanner(int banner)
 			LOG("\t\tclean\tRemoves the target and temp-files", LOG_INFO);
 			LOG("\t\texport\tExports the project to the format given by the 'exporter' argument", LOG_INFO);
 			LOG("\t\t\tValid exporters are: sh (shell script) and makefile (make)", LOG_INFO);
+			LOG("\t\tinstall\tCompiles, links and installs a project", LOG_INFO);
+			LOG("\t\tfake-install\tFakes an install (prints the install procedure to screen instead of doing anything)", LOG_INFO);
 			LOG("", LOG_INFO);
 			LOG("\tAlternative Project File", LOG_INFO);
 			LOG("\t\t<project file>.spank spank/<project file>.spank is added to the list of files to load", LOG_INFO);
