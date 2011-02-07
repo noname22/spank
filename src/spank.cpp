@@ -195,6 +195,7 @@ void Spank::setTemplate(int type)
 			PROJECT->setValue("compiler", "g++");
 			PROJECT->setValue("sources", "*.cpp");
 			PROJECT->setValue("template", "c++");
+			PROJECT->setValue("compilertype", "gcc");
 			break;
 
 		case TEMPLATE_CS:
@@ -204,6 +205,7 @@ void Spank::setTemplate(int type)
 			PROJECT->setValue("template", "cs");
 			PROJECT->setValue("cflags", "");
 			PROJECT->setValue("rccheck", "simple");
+			PROJECT->setValue("compilertype", "mcs");
 			break;
 
 		case TEMPLATE_C:
@@ -212,6 +214,7 @@ void Spank::setTemplate(int type)
 			// note: no break
 		
 		default:
+			PROJECT->setValue("compilertype", "gcc");
 			PROJECT->setValue("compiler", "gcc");
 			PROJECT->setValue("sources", "*.c");
 			break;

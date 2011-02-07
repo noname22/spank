@@ -10,6 +10,7 @@
 #include "system.h"
 
 #include <string>
+#include <cstdlib>
 
 #include "project.h"
 
@@ -34,14 +35,14 @@ Files* System::getFilesInstance()
 
 Compiler* System::getCompilerInstance()
 {
-	std::string compiler = PROJECT->getValueStr("compiler", 0);
-	if(compiler.find("gcc") != std::string::npos || compiler.find("g++") != std::string::npos){ // TODO: less ghetto compiler detection
+	std::string compilertype = PROJECT->getValueStr("compilertype");
+	if(compilertype == "gcc"){ // TODO: less ghetto compiler detection
 		return (Compiler*)SCompilerGcc::getInstance();
-	}else if(compiler == "mcs" || compiler == "gmcs" || compiler == "smcs" || compiler == "ccsc"){
+	}else if(compilertype == "mcs"){
 		return (Compiler*)SCompilerMcs::getInstance();
 	}else{
-		LOG("Unknown compiler: '" << compiler << "'", LOG_WARNING);
-		return (Compiler*)SCompilerGcc::getInstance();
+		LOG("Unknown compiler type: '" << compilertype << "'", LOG_FATAL);
+		exit(1);
 	}
 }
 
