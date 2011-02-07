@@ -1,0 +1,15 @@
+SPANK!
+
+About:
+	Spank is a minimal build system mainly developed for the C and C++ parts of GCC.
+	It features a very easy setup for small projects or test-code.
+
+Autors:
+	Right now, only me, Fredrik Hultin
+
+Contact:
+	Homepage: 	http://nurd.se/~noname/spank
+	E-mail: 	noname @ the very same domain
+
+Requirements:
+	Spank requires find to work properly. It also requires gcc if you want to use it for anything.
