@@ -129,6 +129,7 @@ void Spank::setTemplate(int type)
 		PROJECT->setValue("exclude", "");
 		PROJECT->setValue("rccheck", "recursive");
 		PROJECT->setValue("pp", "$(compiler) -E");
+		PROJECT->setValue("linker", "$(compiler)");
 		PROJECT->setValue("spankdefs", "true");
 		PROJECT->setValue("exporter", "makefile");
 		PROJECT->setValue("exportfile", "");

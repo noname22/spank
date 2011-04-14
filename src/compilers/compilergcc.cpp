@@ -341,13 +341,13 @@ std::string CompilerGcc::getLdCall(bool rlCheck)
 	if(targettype == "lib-static"){
 		call << PROJECT->getValueStr("ar") << " rcs lib" << target << ".a ";
 	}else if(targettype == "lib-shared"){
-		call << PROJECT->getValueStr("compiler") << " -shared -o " << target << " ";
+		call << PROJECT->getValueStr("linker") << " -shared -o " << target << " ";
 	}else{
 		if(targettype != "binary"){
 			LOG("unknown target type: '" << targettype << "', assuming binary", LOG_WARNING);
 			targettype = "binary";
 		}
-		call << PROJECT->getValueStr("compiler") << " -o " << target << " ";
+		call << PROJECT->getValueStr("linker") << " -o " << target << " ";
 	}
 	
 	
