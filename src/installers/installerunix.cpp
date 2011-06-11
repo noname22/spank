@@ -14,7 +14,7 @@ void InstallerUnix::setPrefix()
 
 bool InstallerUnix::install(bool fake)
 {
-	FORMSTR(mkdir, PROJECT->getValueStr("inst_sudo") <<  " mkdir ");
+	FORMSTR(mkdir, PROJECT->getValueStr("inst_sudo") <<  " mkdir -p ");
 	FORMSTR(cp, PROJECT->getValueStr("inst_sudo") <<  " cp ");
 	FORMSTR(scriptPrefix, PROJECT->getValueStr("inst_sudo") <<  " ");
 
