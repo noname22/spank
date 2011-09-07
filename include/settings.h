@@ -28,7 +28,7 @@
 
 #define SPANK_DEFAULTFILE "project.spank"
 
-#define SPANK_MAX_LINE 1024
+#define SPANK_MAX_LINE 4096
 #define SPANK_MAX_RECURSE 1024
 
 //#define DEBUG_VERBOSE

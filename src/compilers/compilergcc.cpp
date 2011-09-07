@@ -133,23 +133,32 @@ void CompilerGcc::setIncludePaths()
 	Tools::execute(cmd, 0, &out);
 	std::stringstream s(out);
 
-	int panic = 256, c = 0, i = -1;
+	int panic = 0x10000, c = 0, i = -1;
 	try{
 		// Read include directories
 		for(;;){
-			if(c++ > panic){ throw std::runtime_error(""); }
+			if(c++ > panic){ 
+				LOG("No End of search list found after " << c << " lines, bailing." , LOG_VERBOSE);
+				throw std::runtime_error("Unexpected output from the preprocessor");
+			}
 
 			std::string line = Tools::getLineStream(s);
+
+			LOG(line, LOG_DEBUG);
 
 			if(line == "#include <...> search starts here:" || line == "#include \"...\" search starts here:"){ i++; continue; }
 			if(line == "End of search list."){ break; }
 			if(i >= 0){ incPaths[i].push_back(line.substr(1)); }
+			
+			if(!s.good()){
+				throw std::runtime_error("EOF without End of search list");
+			}
 		}
 	}
 	
 	catch(std::runtime_error e)
 	{
-		LOG("Unexpected output from the preprocessor", LOG_FATAL);
+		LOG(e.what(), LOG_FATAL);
 		exit(1);
 	}
 
