@@ -127,7 +127,7 @@ void CompilerGcc::setIncludePaths()
 		dashx = "-x c++";
 	}
 
-	FORMSTR(cmd, "echo | " << PROJECT->getValueStr("compiler") << " " << Tools::genCFlags() << " -E " << dashx << " - -v");
+	FORMSTR(cmd, "echo | " << PROJECT->getValueStr("pp") << " " << Tools::genCFlags() << dashx << " - -v");
 	std::string out;
 
 	Tools::execute(cmd, 0, &out);
