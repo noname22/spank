@@ -243,7 +243,8 @@ bool CompilerGcc::checkRecompileRecursive(std::vector<std::string> stack, std::s
 				inComment = false;
 			}
 
-			line = line.substr(commentStart, commentEnd + 2);
+			//line = line.substr(commentStart, commentEnd + 2);
+			line.erase(commentStart, commentEnd + 2 - commentStart);
 		}
 
 		std::stringstream s(line);
