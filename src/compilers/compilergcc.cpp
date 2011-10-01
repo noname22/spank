@@ -301,7 +301,7 @@ bool CompilerGcc::checkRecompileRecursive(std::vector<std::string> stack, std::s
 					return true;
 				}
 			} catch (std::runtime_error) {
-				LOG("The file " << filename << " is includes itself (directly or indirectly). See verbose output (-verbosity 1) for more info.", LOG_WARNING);
+				LOG("The file " << filename << " is includes itself (directly or indirectly).", LOG_VERBOSE);
 				LOG("current include stack: ", LOG_VERBOSE);
 				for(std::vector<std::string>::iterator it = stack.begin(); it != stack.end(); it++){
 					LOG(*it, LOG_VERBOSE);
