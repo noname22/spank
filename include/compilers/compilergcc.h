@@ -36,7 +36,7 @@ class CompilerGcc: public Compiler
 		std::string getPercent(int current, int of);
 
 		void setIncludePaths();
-		std::string lookUpIncludeFile(std::string filename, bool quoted);
+		std::string lookUpIncludeFile(std::string src, std::string filename, bool quoted);
 
 		bool hasPkgConfig;
 		enum IncPathType { Quoted, Bracket };

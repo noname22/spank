@@ -292,3 +292,37 @@ std::string Tools::nameEnc(std::string ext, std::string name)
 	ret.append(ext);
 	return ret;
 }
+
+std::vector<std::string> Tools::makeStrVector(std::string a)
+{
+	std::vector<std::string> ret;
+	ret.push_back(a);
+	return ret;
+}
+
+std::vector<std::string> Tools::makeStrVector(std::string a, std::string b)
+{
+	std::vector<std::string> ret;
+	ret.push_back(a);
+	ret.push_back(b);
+	return ret;
+}
+
+std::vector<std::string> Tools::makeStrVector(std::string a, std::string b, std::string c)
+{
+	std::vector<std::string> ret;
+	ret.push_back(a);
+	ret.push_back(b);
+	ret.push_back(c);
+	return ret;
+}
+
+std::vector<std::string> Tools::makeStrVector(std::string a, std::string b, std::string c, std::string d)
+{
+	std::vector<std::string> ret;
+	ret.push_back(a);
+	ret.push_back(b);
+	ret.push_back(c);
+	ret.push_back(d);
+	return ret;
+}

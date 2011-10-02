@@ -170,16 +170,16 @@ void CompilerGcc::setIncludePaths()
 	}
 }
 
-std::string CompilerGcc::lookUpIncludeFile(std::string filename, bool quoted)
+std::string CompilerGcc::lookUpIncludeFile(std::string src, std::string filename, bool quoted)
 {
 	IncPathType order[2] = {Bracket, Quoted};
+
+	std::vector<std::string> incPaths[2] = this->incPaths;
+	//LOG(src << " -> " << FILES->dirName(src), LOG_DEBUG);
+	incPaths[Quoted].insert(incPaths[0].begin(), FILES->dirName(src)); 	
+
 	if(quoted){
 		order[0] = Quoted; order[1] = Bracket;
-
-		if(FILES->fileExists(filename)){
-			LOG("Found file as: " << filename, LOG_DEBUG);
-			return filename;
-		}
 	}
 
 	for(int i = 0; i < 2; i++){
@@ -270,19 +270,19 @@ bool CompilerGcc::checkRecompileRecursive(std::vector<std::string> stack, std::s
 			size_t first = parse.find_first_of("\"<"); 
 			size_t last = parse.find_last_of("\">"); 
 
-			if(first || last)
+			//if(first || last) ... wat. why was this here?
 			if(parse.size() < 3 || first == std::string::npos || last == std::string::npos){
 				LOG("Recursive recompile checker couldn't parse include directive, syntax error in " << src << ":" << lineNum << "?", LOG_WARNING);
 				LOG("Line: " << line, LOG_VERBOSE);
 				continue;
 			}
 
-			if(parse.at(0) == '\"'){
+			if(parse.at(first) == '\"'){
 				localFirst = true;
 			}
 
 			std::string filename = parse.substr(first + 1, last - 2);
-			try { filename = lookUpIncludeFile(filename, localFirst); }
+			try { filename = lookUpIncludeFile(src, filename, localFirst); }
 
 			catch(...){
 				LOG("Recursive compile checker coulnd't find the included file: '" << filename << "' (at line " << lineNum << ")", LOG_VERBOSE);

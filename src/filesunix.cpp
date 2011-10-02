@@ -14,9 +14,11 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <pwd.h>
+#include <libgen.h>
 
 #include <fstream>
 #include <cstdlib>
+#include <cstring>
 
 #include "project.h"
 #include "tools.h"
@@ -244,4 +246,33 @@ bool FilesUnix::fileExists(std::string file)
 	}else{
 		return false;
 	}
+}
+	
+std::string FilesUnix::combinePath(std::vector<std::string> p)
+{
+	std::string ret;
+	
+	for(std::vector<std::string>::iterator it = p.begin(); it != p.end(); it++){
+		ret.append(*it);
+		ret.push_back('/');
+	}
+	ret.erase(ret.size() - 1);
+
+	return ret;
+}
+
+std::string FilesUnix::dirName(std::string filename)
+{
+	char* n = dirname(strdup(filename.c_str()));
+	std::string ret = n;
+	free(n);
+	return ret;
+}
+
+std::string FilesUnix::baseName(std::string filename)
+{
+	char* n = basename(strdup(filename.c_str()));
+	std::string ret = n;
+	free(n);
+	return ret;
 }

@@ -19,6 +19,7 @@
 
 #include <string>
 #include <sstream>		
+#include <vector>
 
 class ForkResult
 {
@@ -56,6 +57,11 @@ class Tools
 		static int execute(std::string cmd, std::string stdFile, std::string errFile = "/dev/null");
 		static std::string deEscape(std::string str);
 		static std::string joinStrings(std::vector<std::string> & strs, std::string separator = " ");
+
+		static std::vector<std::string> makeStrVector(std::string a);
+		static std::vector<std::string> makeStrVector(std::string a, std::string b);
+		static std::vector<std::string> makeStrVector(std::string a, std::string b, std::string c);
+		static std::vector<std::string> makeStrVector(std::string a, std::string b, std::string c, std::string d);
 
 		// Unix stuff
 		static void forkDo(std::string cmd, PidList& pidList, int id=0);

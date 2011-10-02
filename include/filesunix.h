@@ -36,6 +36,11 @@ class FilesUnix: public Files
 
 		bool checkRecompilePp(std::string src);
 		void markRecompilePp(std::string src);
+		
+		std::string dirName(std::string filename);
+		std::string baseName(std::string filename);
+		
+		std::string combinePath(std::vector<std::string> p);
 
 	private:
 		bool find(std::string what, std::string where, std::string result);

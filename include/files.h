@@ -13,6 +13,7 @@
 #include <string>
 #include <ctime>
 #include <utility>
+#include <vector>
 
 #include "project.h"
 
@@ -38,6 +39,10 @@ class Files
 		virtual void wait() = 0;
 		virtual std::pair<std::string, std::string> pathSplit(std::string path) = 0;
 		virtual bool copy(std::string from, std::string to) = 0;
+
+		virtual std::string dirName(std::string filename) = 0;
+		virtual std::string baseName(std::string filename) = 0;
+		virtual std::string combinePath(std::vector<std::string> p) = 0;
 
 		// Actual functions
 
