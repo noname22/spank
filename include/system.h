@@ -15,6 +15,7 @@
 #include "filesunix.h"
 #include "compilers/compilergcc.h"
 #include "compilers/compilermcs.h"
+#include "compilers/compilervala.h"
 #include "exporters/exportshell.h"
 #include "exporters/exportmakefile.h"
 
@@ -32,6 +33,7 @@ typedef Singleton<FilesUnix> SFilesUnix;
 // All compiler systems
 typedef Singleton<CompilerGcc> SCompilerGcc;
 typedef Singleton<CompilerMcs> SCompilerMcs;
+typedef Singleton<CompilerVala> SCompilerVala;
 
 // All exporters
 typedef Singleton<Export> SExport; 			// Default exporter (always fails)

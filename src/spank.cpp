@@ -198,6 +198,16 @@ void Spank::setTemplate(int type)
 			PROJECT->setValue("template", "c++");
 			PROJECT->setValue("compilertype", "gcc");
 			break;
+		
+		case TEMPLATE_VALA:
+			LOG("Using template: vala", LOG_INFO);
+			PROJECT->setValue("compiler", "valac");
+			PROJECT->setValue("sources", "*.vala");
+			PROJECT->setValue("template", "vala");
+			PROJECT->setValue("cflags", "");
+			PROJECT->setValue("rccheck", "simple");
+			PROJECT->setValue("compilertype", "vala");
+			break;
 
 		case TEMPLATE_CS:
 			LOG("Using template: c#", LOG_INFO);
@@ -311,6 +321,8 @@ void Spank::handleArgs(int argc, const char* const* argv){
 			setTemplate(TEMPLATE_C);
 		}else if(tmpl == "cs" || tmpl == "csharp"){
 			setTemplate(TEMPLATE_CS);
+		}else if(tmpl == "vala"){
+			setTemplate(TEMPLATE_VALA);
 		}else{
 			setTemplate(TEMPLATE_DEFAULT);
 		}

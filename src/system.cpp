@@ -19,6 +19,7 @@ template<> FilesUnix* SFilesUnix::instance = 0;
 
 template<> CompilerGcc* SCompilerGcc::instance = 0;
 template<> CompilerMcs* SCompilerMcs::instance = 0;
+template<> CompilerVala* SCompilerVala::instance = 0;
 
 template<> Export* SExport::instance = 0;
 template<> ExportShell* SExportShell::instance = 0;
@@ -40,6 +41,8 @@ Compiler* System::getCompilerInstance()
 		return (Compiler*)SCompilerGcc::getInstance();
 	}else if(compilertype == "mcs"){
 		return (Compiler*)SCompilerMcs::getInstance();
+	}else if(compilertype == "vala"){
+		return SCompilerVala::getInstance();
 	}else{
 		LOG("Unknown compiler type: '" << compilertype << "'", LOG_FATAL);
 		exit(1);

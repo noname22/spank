@@ -142,7 +142,7 @@ std::string Tools::genCFlags()
 
 		std::string compiler = PROJECT->getValueStr("compiler");
 
-		if(compiler.find("gcc") != std::string::npos || compiler.find("g++") != std::string::npos){ // TODO: less ghetto compiler detection
+		if(PROJECT->getValueStr("compilertype") == "gcc"){ // TODO: less ghetto compiler detection
 			flags.append("-DSPANK_COMPILER_GCC ");
 			// the only supported enviroment as of yet
 			flags.append("-DSPANK_ENV_UNIX ");
