@@ -18,6 +18,10 @@ cflags 		Iinclude Wall pedantic ggdb
 
 # --- Installer stuff ---
 inst_copy	$(target) $(inst_prefix)bin/$(target)
+#inst_sudo	"" # uncomment this line if you run spank as root and don't have sudo
+#inst_prefix	~/ # uncomment this line if you want to install spank to your home directory
+# please note that both the above lines can also be set from commandline by 
+#   spank -inst_sudo "" -inst_prefix "~/" install
 
 # --- dpkg stuff ---
 inst_deb_depends	"binutils, coreutils, pkg-config, tar, sudo, findutils"
