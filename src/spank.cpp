@@ -115,7 +115,8 @@ void Spank::setTemplate(int type)
 		
 		PROJECT->setValue("project", "project.spank");
 		PROJECT->addValue("project", "spank/project.spank");
-		PROJECT->setValue("config", "$(HOME)/.spank/config.spank");
+		PROJECT->setValue("config", "/etc/spank.conf");
+		PROJECT->addValue("config", "$(HOME)/.spank/config.spank");
 		PROJECT->setValue("target_name", "out");
 		PROJECT->setValue("target", "$(target_prefix)$(target_name)$(target_suffix)");
 		PROJECT->setValue("sourcedir", ".");
