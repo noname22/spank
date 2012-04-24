@@ -116,7 +116,8 @@ void Spank::setTemplate(int type)
 		PROJECT->setValue("project", "project.spank");
 		PROJECT->addValue("project", "spank/project.spank");
 		PROJECT->setValue("config", "$(HOME)/.spank/config.spank");
-		PROJECT->setValue("target", "out");
+		PROJECT->setValue("target_name", "out");
+		PROJECT->setValue("target", "$(target_prefix)$(target_name)$(target_suffix)");
 		PROJECT->setValue("sourcedir", ".");
 		PROJECT->setValue("cflags", "Iinclude");
 		PROJECT->setValue("action", "none");
@@ -134,7 +135,7 @@ void Spank::setTemplate(int type)
 		PROJECT->setValue("exporter", "makefile");
 		PROJECT->setValue("exportfile", "");
 		PROJECT->setValue("lib", "");
-		PROJECT->setValue("pkg-config", "PKG_CONFIG_PATH=$PKG_CONFIG_PATH:.:spank pkg-config");
+		PROJECT->setValue("pkg-config", "PKG_CONFIG_PATH=$PKG_CONFIG_PATH:.:spank:$(prefix)/lib/pkgconfig pkg-config");
 		PROJECT->setValue("tar", "tar");
 		PROJECT->setValue("ar", "ar");
 		PROJECT->setValue("stripsrc", "false");
@@ -153,6 +154,24 @@ void Spank::setTemplate(int type)
 		PROJECT->addValue("include", "");
 		PROJECT->setValue("targettype", "binary");
 		PROJECT->setValue("fpic", "-fPIC");
+
+		// Target platform defaults (posix/native)
+
+		PROJECT->setValue("target_platform", "posix");
+		
+		PROJECT->setValue("host", "");
+		PROJECT->setValue("host_dash", "");
+		PROJECT->setValue("prefix", "/usr/$(host)");
+
+		PROJECT->setValue("binary_prefix", "");
+		PROJECT->setValue("binary_suffix", "");
+		PROJECT->setValue("lib-shared_prefix", "lib");
+		PROJECT->setValue("lib-shared_suffix", ".so.0");
+		PROJECT->setValue("lib-static_prefix", "lib");
+		PROJECT->setValue("lib-static_suffix", ".a");
+
+		PROJECT->setValue("target_prefix", "$(binary_prefix)");
+		PROJECT->setValue("target_suffix", "$(binary_suffix)");
 
 		// Installer defaults
 
@@ -193,7 +212,7 @@ void Spank::setTemplate(int type)
 	switch(type){
 		case TEMPLATE_CPP:
 			LOG("Using template: c++", LOG_INFO);
-			PROJECT->setValue("compiler", "g++");
+			PROJECT->setValue("compiler", "$(host_dash)g++");
 			PROJECT->setValue("sources", "*.cpp");
 			PROJECT->setValue("template", "c++");
 			PROJECT->setValue("compilertype", "gcc");
@@ -226,7 +245,7 @@ void Spank::setTemplate(int type)
 		
 		default:
 			PROJECT->setValue("compilertype", "gcc");
-			PROJECT->setValue("compiler", "gcc");
+			PROJECT->setValue("compiler", "$(host_dash)gcc");
 			PROJECT->setValue("sources", "*.c");
 			break;
 	}
@@ -327,6 +346,35 @@ void Spank::handleArgs(int argc, const char* const* argv){
 			setTemplate(TEMPLATE_DEFAULT);
 		}
 
+		// Set the target prefix and suffix depnding on target type	
+		std::string targetType = PROJECT->getValueStr("targettype");
+		if(targetType == "lib-static"){
+			PROJECT->setValue("target_prefix", "$(lib-static_prefix)");
+			PROJECT->setValue("target_suffix", "$(lib-static_suffix)");
+		}
+		else if(targetType == "lib-shared"){
+			PROJECT->setValue("target_prefix", "$(lib-shared_prefix)");
+			PROJECT->setValue("target_suffix", "$(lib-shared_suffix)");
+		}
+
+		// predefined platforms	(other than the default: posix)
+		std::string targetPlatform = PROJECT->getValueStr("target_platform");
+
+		if(targetPlatform == "mingw32" || targetPlatform == "mingw64"){
+			PROJECT->setValue("host", targetPlatform == "mingw32" ? "i686-w64-mingw32" : "x86_64-w64-mingw32");
+			PROJECT->setValue("binary_prefix", "");
+			PROJECT->setValue("binary_suffix", targetPlatform == "mingw32" ? ".exe" : "_64.exe");
+			PROJECT->setValue("lib-shared_prefix", "");
+			PROJECT->setValue("lib-shared_suffix", ".dll");
+		}
+		else if(targetPlatform != "posix"){
+			LOG("unknown target platform: '" << targetPlatform << "', assuming posix", LOG_WARNING);
+		}
+
+		if(PROJECT->getValueStr("host") != ""){
+			PROJECT->setValue("host_dash", "$(host)-");
+		}
+
 		if(PROJECT->getValueBool("showconfig", 0)){
 			PROJECT->dumpConfig();
 		}
@@ -335,6 +383,5 @@ void Spank::handleArgs(int argc, const char* const* argv){
 			LOG("No project file found.", LOG_ERROR);
 			exit(1);
 		}
-
 	}
 }

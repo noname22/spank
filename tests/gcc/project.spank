@@ -1,9 +1,7 @@
-target		test
-compiler 	gcc
+target_name	test
 sourcedir	src
 cflags		Iinclude
-sources		*.c
-lib		femtoxml
+#lib		femtoxml
 prebuildscript	"spank/prebuild.sh 1" "spank/prebuild.sh 2"
 postbuildscript	"spank/postbuild.sh 2"
 oncleanscript	spank/onclean.sh
