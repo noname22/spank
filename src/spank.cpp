@@ -117,10 +117,10 @@ void Spank::setTemplate(int type)
 		PROJECT->addValue("project", "spank/project.spank");
 		PROJECT->setValue("config", "/etc/spank.conf");
 		PROJECT->addValue("config", "$(HOME)/.spank/config.spank");
-		PROJECT->setValue("target_name", "out");
+		PROJECT->setValue("target_name", "$(name)");
 		PROJECT->setValue("target", "$(target_prefix)$(target_name)$(target_suffix)");
 		PROJECT->setValue("sourcedir", ".");
-		PROJECT->setValue("cflags", "Iinclude");
+		PROJECT->setValue("cflags", "");
 		PROJECT->setValue("action", "none");
 		PROJECT->setValue("template", "default");
 		PROJECT->setValue("help", "no");
@@ -148,7 +148,7 @@ void Spank::setTemplate(int type)
 		PROJECT->addValue("postbuildscript", "");
 		PROJECT->addValue("oncleanscript", "");
 		PROJECT->addValue("version", "0.1");
-		PROJECT->addValue("name", "untitled project");
+		PROJECT->addValue("name", "untitled_project");
 		PROJECT->addValue("homepage", "none");
 		PROJECT->addValue("email", "nomail@example.com");
 		PROJECT->addValue("author", "author of $(name)");
@@ -213,11 +213,14 @@ void Spank::setTemplate(int type)
 
 	switch(type){
 		case TEMPLATE_CPP:
+		case TEMPLATE_CPP11:
 			LOG("Using template: c++", LOG_INFO);
 			PROJECT->setValue("compiler", "$(host_dash)g++");
 			PROJECT->setValue("sources", "*.cpp");
 			PROJECT->setValue("template", "c++");
 			PROJECT->setValue("compilertype", "gcc");
+			PROJECT->setValue("cflags", "Wall");
+			if(type == TEMPLATE_CPP11) PROJECT->addValue("cflags", "std=c++0x");
 			break;
 		
 		case TEMPLATE_VALA:
@@ -225,7 +228,6 @@ void Spank::setTemplate(int type)
 			PROJECT->setValue("compiler", "valac");
 			PROJECT->setValue("sources", "*.vala");
 			PROJECT->setValue("template", "vala");
-			PROJECT->setValue("cflags", "");
 			PROJECT->setValue("rccheck", "simple");
 			PROJECT->setValue("compilertype", "vala");
 			break;
@@ -235,14 +237,16 @@ void Spank::setTemplate(int type)
 			PROJECT->setValue("compiler", "gmcs");
 			PROJECT->setValue("sources", "*.cs");
 			PROJECT->setValue("template", "cs");
-			PROJECT->setValue("cflags", "");
 			PROJECT->setValue("rccheck", "simple");
 			PROJECT->setValue("compilertype", "mcs");
 			break;
 
 		case TEMPLATE_C:
+		case TEMPLATE_C99:
 			LOG("Using template: c", LOG_INFO);
 			PROJECT->setValue("template", "c");
+			PROJECT->setValue("cflags", "Wall");
+			if(type == TEMPLATE_C99) PROJECT->addValue("cflags", "std=c99");
 			// note: no break
 		
 		default:
@@ -338,8 +342,12 @@ void Spank::handleArgs(int argc, const char* const* argv){
 
 		if(tmpl == "c++" || tmpl == "cpp"){
 			setTemplate(TEMPLATE_CPP);
+		}else if(tmpl == "c++0x" || tmpl == "c++11" || tmpl == "cpp0x" || tmpl == "cpp11"){
+			setTemplate(TEMPLATE_CPP11);
 		}else if(tmpl == "c"){
 			setTemplate(TEMPLATE_C);
+		}else if(tmpl == "c99"){
+			setTemplate(TEMPLATE_C99);
 		}else if(tmpl == "cs" || tmpl == "csharp"){
 			setTemplate(TEMPLATE_CS);
 		}else if(tmpl == "vala"){
