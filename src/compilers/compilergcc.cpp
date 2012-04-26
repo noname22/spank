@@ -394,9 +394,11 @@ std::string CompilerGcc::getLdCall(bool rlCheck)
 		call << " " << PROJECT->getValueStr("ldflags", " ", " ", " ");
 	}
 
-	if(targettype != "lib-static" && PROJECT->getNumValues("lib")){
+	if(targettype != "lib-static" && PROJECT->getNumValues("lib"))
 		call << "`" << PROJECT->getValueStr("pkg-config") << PROJECT->getValueStr("lib", " --libs ", " ", "` ");
-	}
+	
+	if(targettype != "lib-static" && PROJECT->getNumValues("lib-static"))
+		call << "`" << PROJECT->getValueStr("pkg-config") << PROJECT->getValueStr("lib-static", " --static --libs ", " ", "` ");
 
 	LOG("ldcall: " << call.str(), LOG_DEBUG);
 		
@@ -457,7 +459,7 @@ bool CompilerGcc::pkgCall(std::string switches)
 
 bool CompilerGcc::checkLibs()
 {
-	if(PROJECT->getNumValues("lib") > 0){
+	if(PROJECT->getNumValues("lib") > 0 || PROJECT->getNumValues("lib-static")){
 		if(!pkgCall("--atleast-pkgconfig-version=0.20")){
 			LOG("Spank requires pkg-config 0.20 or higher to handle library dependencies", LOG_ERROR);
 			LOG("Ignoring all libraries", LOG_WARNING);
@@ -473,6 +475,13 @@ bool CompilerGcc::checkLibs()
 	for(int i=0; i < PROJECT->getNumValues("lib"); i++){
 		if(!pkgCall(PROJECT->getValueStr("lib", i))){
 			LOG("Missing library '" << PROJECT->getValueStr("lib", i) << "'", LOG_ERROR);
+			ret = false;
+		}
+	}
+	
+	for(int i=0; i < PROJECT->getNumValues("lib-static"); i++){
+		if(!pkgCall(PROJECT->getValueStr("lib-static", i))){
+			LOG("Missing library '" << PROJECT->getValueStr("lib-static", i) << "'", LOG_ERROR);
 			ret = false;
 		}
 	}

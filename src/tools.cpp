@@ -128,6 +128,7 @@ bool Tools::executeAll(std::string configItem, std::string prefix, bool fake)
 	return true;
 }
 
+// TODO why is this here and not in compilergcc?
 std::string Tools::genCFlags()
 {
 	std::string flags;
@@ -163,6 +164,12 @@ std::string Tools::genCFlags()
 		flags.append(PROJECT->getValueStr("pkg-config"));
 		flags.append(PROJECT->getValueStr("lib", " --cflags ", " ", "`"));
 	}
+	
+	if(PROJECT->getNumValues("lib-static")){
+		flags.append(" `");
+		flags.append(PROJECT->getValueStr("pkg-config"));
+		flags.append(PROJECT->getValueStr("lib-static", " --static --cflags ", " ", "`"));
+	}
 
 	return flags;
 }
@@ -177,6 +184,12 @@ std::string Tools::genLdFlags()
 		ret = "`";
 		ret.append(PROJECT->getValueStr("pkg-config"));
 		ret.append(PROJECT->getValueStr("lib", " --libs ", " ", "`"));
+	}
+	
+	if(PROJECT->getNumValues("lib-static")){
+		ret = "`";
+		ret.append(PROJECT->getValueStr("pkg-config"));
+		ret.append(PROJECT->getValueStr("lib-static", " --libs ", " ", "`"));
 	}
 
 	ret.append(PROJECT->getValueStr("ldflags", "-", " -", " "));
