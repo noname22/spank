@@ -349,7 +349,7 @@ std::string CompilerGcc::getLdCall(bool rlCheck)
 	std::string targettype = PROJECT->getValueStr("targettype");
 
 	if(targettype == "lib-static"){
-		call << PROJECT->getValueStr("ar") << " rcs lib" << target << ".a ";
+		call << PROJECT->getValueStr("ar") << " rcs lib" << target;
 	}else if(targettype == "lib-shared"){
 		call << PROJECT->getValueStr("linker") << " -shared -o " << target << " ";
 	}else{
