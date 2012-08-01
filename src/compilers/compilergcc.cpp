@@ -349,15 +349,15 @@ std::string CompilerGcc::getLdCall(bool rlCheck)
 	std::string targettype = PROJECT->getValueStr("targettype");
 
 	if(targettype == "lib-static"){
-		call << PROJECT->getValueStr("ar") << " rcs lib" << target;
+		call << PROJECT->getValueStr("ar") << " rcs " << target;
 	}else if(targettype == "lib-shared"){
-		call << PROJECT->getValueStr("linker") << " -shared -o " << target << " ";
+		call << PROJECT->getValueStr("linker") << " -shared -o " << target;
 	}else{
 		if(targettype != "binary"){
 			LOG("unknown target type: '" << targettype << "', assuming binary", LOG_WARNING);
 			targettype = "binary";
 		}
-		call << PROJECT->getValueStr("linker") << " -o " << target << " ";
+		call << PROJECT->getValueStr("linker") << " -o " << target;
 	}
 	
 	
@@ -366,8 +366,6 @@ std::string CompilerGcc::getLdCall(bool rlCheck)
 	open.append("/objectlist");
 	std::ifstream list(open.c_str());
 	
-	bool first=true;
-
 	char line[SPANK_MAX_LINE];
 
 	while(list.good()){
@@ -379,12 +377,7 @@ std::string CompilerGcc::getLdCall(bool rlCheck)
 		}
 
 		if(strlen(line) != 0){
-			if(first){
-				first = false;
-			}else{
-				call << " ";
-			}
-			call << line;
+			call << " " << line;
 		}
 	}
 
