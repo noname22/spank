@@ -55,28 +55,30 @@ bool Files::checkRecompile(std::string src, std::string obj)
 	}
 	return true;
 }
-
-std::string Files::getTmpDir()
+	
+void Files::initializeTmpDir()
 {
 	std::string tmp;
 
 	if(PROJECT->getValueStr("tmpdir") != ""){
 		tmp = PROJECT->getValueStr("tmpdir");
-		//LOG("Using user specified temp-dir: " << tmp, LOG_DEBUG);
 	}else if(PROJECT->getValueStr("action") == "export"){
 		tmp = getGlobalTmpDir();
-		//LOG("Exporting, so using global temp-dir: " << tmp, LOG_DEBUG);
 	}else{
 		tmp = getTmpDirStr();
-		//LOG("Using default temp-dir: " << tmp, LOG_DEBUG);
 	}
 
-	if(!once || !isDir(tmp)){
+	if(!isDir(tmp)){
 		prepareTmpDir(tmp);
-		once = true;
+		LOG("created directory: " << tmp, LOG_VERBOSE);
 	}
 
-	return tmp;
+	PROJECT->setValue("tmpdir", tmp);
+}
+
+std::string Files::getTmpDir()
+{
+	return PROJECT->getValueStr("tmpdir");
 }
 
 

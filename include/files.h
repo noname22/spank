@@ -51,6 +51,7 @@ class Files
 		
 		virtual bool checkRecompile(std::string src, std::string obj);
 
+		virtual void initializeTmpDir();
 		virtual std::string getTmpDir();
 		virtual void prepareTmpDir(std::string dir);
 		virtual bool erase(std::string fileName);

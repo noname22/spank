@@ -26,6 +26,8 @@ Spank::Spank(int argc, char** argv)
 		return;
 	}
 
+	FILES->initializeTmpDir();
+
 	std::string action = PROJECT->getValueStr("action", 0);
 	if(action == "compile"){
 		LOG("Action: compile", LOG_DEBUG);
@@ -62,6 +64,7 @@ Spank::Spank(int argc, char** argv)
 		LOG("Action: rebuild", LOG_DEBUG);
 		if(COMPILER->clean()){
 			LOG("done cleaning", LOG_INFO);
+			FILES->initializeTmpDir();
 			if(COMPILER->compile() && COMPILER->link()){
 				LOG("done rebuilding", LOG_INFO);
 			}else{
@@ -337,7 +340,7 @@ void Spank::handleArgs(int argc, const char* const* argv){
 				noConfig = false;
 			}
 		}
-	
+
 		std::string tmpl = PROJECT->getValueStr("template", 0);
 
 		if(tmpl == "c++" || tmpl == "cpp"){
