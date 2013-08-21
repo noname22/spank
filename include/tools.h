@@ -50,6 +50,7 @@ class Tools
 		static std::string genCFlags();
 		static std::string genLdFlags();
 		static std::string toLower(std::string in);
+		static std::string toUpper(std::string in);
 		static std::string filenameify(std::string str);
 		static std::string getLineStream(std::istream& stream);
 

@@ -148,6 +148,11 @@ std::string Tools::genCFlags()
 			// the only supported enviroment as of yet
 			flags.append("-DSPANK_ENV_UNIX ");
 
+
+			flags.append("-DSPANK_ENV_UNIX ");
+			ADDSTR(flags, "-D'SPANK_TARGET_PLATFORM=\"" << PROJECT->getValueStr("target_platform") << "\"' ");
+			ADDSTR(flags, "-DSPANK_TARGET_PLATFORM_" << toUpper(PROJECT->getValueStr("target_platform")) << " ");
+
 			ADDSTR(flags, "-D'SPANK_NAME=\"" << PROJECT->getValueStr("name") << "\"' ");
 			ADDSTR(flags, "-D'SPANK_BINNAME=\"" << PROJECT->getValueStr("target") << "\"' ");
 			ADDSTR(flags, "-D'SPANK_VERSION=\"" << PROJECT->getValueStr("version") << "\"' ");
@@ -272,6 +277,12 @@ int Tools::execute(std::string cmd, std::string* out, std::string* err)
 std::string Tools::toLower(std::string in)
 {
 	std::transform(in.begin(), in.end(), in.begin(), ::tolower);
+	return in;
+}
+
+std::string Tools::toUpper(std::string in)
+{
+	std::transform(in.begin(), in.end(),in.begin(), ::toupper);
 	return in;
 }
 
