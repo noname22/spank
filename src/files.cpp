@@ -50,9 +50,17 @@ std::string Files::strFromFile(std::string fileName)
 
 bool Files::checkRecompile(std::string src, std::string obj)
 {
+	LOG("files check recompile '" << src << "' ... '" << obj << "'", LOG_DEBUG);	
+	if(!fileExists(obj)){
+		LOG("object doesn't exist -> recompile", LOG_DEBUG);
+		return true;
+	}
+
 	if(getDate(src) <= getDate(obj)){
+		LOG("object is older than source, recompile", LOG_DEBUG);
 		return false;
 	}
+	LOG("source is older than object, don't recompile", LOG_DEBUG);
 	return true;
 }
 	
@@ -69,8 +77,16 @@ void Files::initializeTmpDir()
 	}
 
 	if(!isDir(tmp)){
-		prepareTmpDir(tmp);
+		if(!createDir(tmp)){
+			LOG("Couldn't create tmp-dir", LOG_FATAL);
+			exit(1);
+		}
 		LOG("created directory: " << tmp, LOG_VERBOSE);
+	}
+
+	if(!genSourceFileList(tmp)){
+		LOG("Couldn't locate all sources files", LOG_FATAL);
+		exit(1);
 	}
 
 	PROJECT->setValue("tmpdir", tmp);
@@ -79,20 +95,6 @@ void Files::initializeTmpDir()
 std::string Files::getTmpDir()
 {
 	return PROJECT->getValueStr("tmpdir");
-}
-
-
-void Files::prepareTmpDir(std::string dir)
-{
-	if(!createDir(dir)){
-		LOG("Couldn't create tmp-dir", LOG_FATAL);
-		exit(1);
-	}
-
-	if(!listDir(dir)){
-		LOG("Couldn't locate all sources files", LOG_FATAL);
-		exit(1);
-	}
 }
 
 bool Files::erase(std::string fileName)

@@ -46,64 +46,64 @@ std::vector<CList> CompilerGcc::compileList(bool rcCheck)
 
 	cList.clear();
 	std::vector<std::string> dupCheck;
-	bool noDup=true;
 
 	while(list.good()){
+		// TODO refactor to use std::string instead
 		srcCount++;
 		list.getline(line, SPANK_MAX_LINE);
-		if(strlen(line) != 0){
-			
-			std::string obj = FILES->getTmpDir();
-			obj.append("/");
-			obj.append(Tools::nameEnc(".o", line));
-
-			noDup = true;
-			for(int i=0; i < (int)dupCheck.size(); i++){
-				if(obj == dupCheck.at(i)){
-					noDup = false;
-				}
-			}
-			
-			if(noDup){
-				dupCheck.push_back(obj);
-				std::string src = line;
 		
-				if(!checkExclude(src)){	
-					objectList << obj << std::endl;
+		// ignore empty lines
+		if(strlen(line) == 0)
+			continue;
 			
-					if(!rcCheck || checkRecompile(src, obj)){
-						CList tmp;
-						
-						count++;
-						std::string call;
+		std::string obj = FILES->getTmpDir();
+		obj.append("/");
+		obj.append(Tools::nameEnc(".o", line));
 
-						call = PROJECT->getValueStr("compiler", 0);
-						call.append(" ");
-						call.append(Tools::genCFlags());
+		// ignore duplicates
+		for(std::vector<std::string>::iterator it = dupCheck.begin(); it != dupCheck.end(); it++)
+			if(obj == *it)
+				continue;
 
-						// already taken care of in genCFlags
-						/*for(int p = 0; p < PROJECT->getNumValues("lib"); p++){
-							call.append(pkgGetFlags(PROJECT->getValueStr("lib", p), true));
-						}*/
+		dupCheck.push_back(obj);
+		std::string src = line;
 
-						if(PROJECT->getValueStr("targettype") == "lib-shared"){
-							call.append(PROJECT->getValueStr("fpic"));
-							call.append(" ");
-						}
+		// ignore excluded sources
+		if(checkExclude(src))
+			continue;
 
-						call.append("-c -o ");
-						call.append(obj);
-						call.append(" ");
-						call.append(src);
-						
-						tmp.call = call;
-						tmp.src = src;
-						tmp.obj = obj;
-						
-						cList.push_back(tmp);
-					}
-				}
+		objectList << obj << std::endl;
+
+		if(!rcCheck || checkRecompile(src, obj)){
+			CList tmp;
+			
+			count++;
+			std::string call;
+
+			call = PROJECT->getValueStr("compiler", 0);
+			call.append(" ");
+			call.append(Tools::genCFlags());
+
+			// already taken care of in genCFlags
+			/*for(int p = 0; p < PROJECT->getNumValues("lib"); p++){
+				call.append(pkgGetFlags(PROJECT->getValueStr("lib", p), true));
+			}*/
+
+			if(PROJECT->getValueStr("targettype") == "lib-shared"){
+				call.append(PROJECT->getValueStr("fpic"));
+				call.append(" ");
 			}
+
+			call.append("-c -o ");
+			call.append(obj);
+			call.append(" ");
+			call.append(src);
+			
+			tmp.call = call;
+			tmp.src = src;
+			tmp.obj = obj;
+			
+			cList.push_back(tmp);
 		}
 	}
 

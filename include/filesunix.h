@@ -17,7 +17,7 @@ class FilesUnix: public Files
 {
 	public:
 
-		bool listDir(std::string dir);
+		bool genSourceFileList(std::string dir);
 		
 		time_t getDate(std::string file);
 		bool fileExists(std::string file);

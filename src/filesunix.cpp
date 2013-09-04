@@ -182,8 +182,9 @@ bool FilesUnix::find(std::string what, std::string where, std::string result)
 }
 
 
-bool FilesUnix::listDir(std::string dir){
-
+bool FilesUnix::genSourceFileList(std::string dir)
+{
+	LOG("creating a filelist", LOG_DEBUG);
 	std::string filelist = dir;
 	filelist.append("/filelist");
 	remove(filelist.c_str());

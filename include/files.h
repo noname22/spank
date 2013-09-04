@@ -22,7 +22,7 @@ class Files
 	public:
 		// Pure virtual functions
 
-		virtual bool listDir(std::string dir) = 0;
+		virtual bool genSourceFileList(std::string dir) = 0;
 		
 		virtual time_t getDate(std::string file) = 0;
 		virtual bool fileExists(std::string file) = 0;
@@ -53,7 +53,6 @@ class Files
 
 		virtual void initializeTmpDir();
 		virtual std::string getTmpDir();
-		virtual void prepareTmpDir(std::string dir);
 		virtual bool erase(std::string fileName);
 
 		virtual std::string strFromFile(std::string fileName);

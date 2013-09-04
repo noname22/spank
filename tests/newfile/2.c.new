@@ -1,0 +1,4 @@
+int req()
+{
+	return 0;
+}
