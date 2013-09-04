@@ -44,6 +44,8 @@ class Files
 		virtual std::string baseName(std::string filename) = 0;
 		virtual std::string combinePath(std::vector<std::string> p) = 0;
 
+		virtual std::string getFullProjectPath() = 0;
+
 		// Actual functions
 
 		Files();

@@ -15,6 +15,7 @@
 #include <unistd.h>
 #include <pwd.h>
 #include <libgen.h>
+#include <limits.h>
 
 #include <fstream>
 #include <cstdlib>
@@ -219,14 +220,16 @@ int FilesUnix::isDir (std::string path)
 
 std::string FilesUnix::getGlobalTmpDir()
 {
+	FORMSTR(name, PROJECT->getValueStr("target") << "." << getFullProjectPath());
 	std::string tmp = "/tmp/";
-	tmp.append(Tools::nameEnc(".tempfiles", PROJECT->getValueStr("target")));
+	tmp.append(Tools::nameEnc(".tempfiles", name));
 	return tmp;
 }
 
 std::string FilesUnix::getTmpDirStr()
 {
-	FORMSTR(tmp, getHomeDir() << "/" << Tools::nameEnc(".tempfiles", PROJECT->getValueStr("target")) << "/");
+	FORMSTR(name, PROJECT->getValueStr("target") << "." << getFullProjectPath());
+	FORMSTR(tmp, getHomeDir() << "/" << Tools::nameEnc(".tempfiles", name) << "/");
 	return tmp;
 }
 
@@ -276,4 +279,14 @@ std::string FilesUnix::baseName(std::string filename)
 	std::string ret = n;
 	free(n);
 	return ret;
+}
+
+std::string FilesUnix::getFullProjectPath()
+{
+	char buffer[PATH_MAX];
+	if(!realpath(".", buffer)){
+		LOG("could not get path to project directory", LOG_FATAL);
+		exit(1);
+	}
+	return buffer;
 }

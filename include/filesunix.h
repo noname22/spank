@@ -41,6 +41,8 @@ class FilesUnix: public Files
 		std::string baseName(std::string filename);
 		
 		std::string combinePath(std::vector<std::string> p);
+		
+		std::string getFullProjectPath();
 
 	private:
 		bool find(std::string what, std::string where, std::string result);
