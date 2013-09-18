@@ -289,7 +289,7 @@ bool Config::loadConfig(std::string filename, int depth)
 		return false;
 	}	
 	
-	LOG("Loading project file " << filename, LOG_INFO);
+	LOG("Loading project file " << filename, LOG_VERBOSE);
 
 	//configItems.clear();
 	

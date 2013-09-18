@@ -32,7 +32,7 @@ Spank::Spank(int argc, char** argv)
 	if(action == "compile"){
 		LOG("Action: compile", LOG_DEBUG);
 		if(COMPILER->compile()){
-			LOG("done compiling", LOG_INFO);
+			LOG("done compiling", LOG_VERBOSE);
 		}else{
 			exit(1);
 		}
@@ -41,7 +41,7 @@ Spank::Spank(int argc, char** argv)
 	else if(action == "build"){
 		LOG("Action: build", LOG_DEBUG);
 		if(COMPILER->compile() && COMPILER->link()){
-			LOG("done building", LOG_INFO);
+			LOG("done building", LOG_VERBOSE);
 		}
 	}
 	
@@ -49,24 +49,24 @@ Spank::Spank(int argc, char** argv)
 		LOG("Action: install", LOG_DEBUG);
 		INSTALLER->setPrefix();
 		if(COMPILER->compile() && COMPILER->link() && INSTALLER->install(false)){
-			LOG("done installing", LOG_INFO);
+			LOG("done installing", LOG_VERBOSE);
 		}
 	}
 
 	else if(action == "fake-install"){
 		LOG("Action: fake-install", LOG_DEBUG);
 		if(INSTALLER->install(true)){
-			LOG("done fake-installing", LOG_INFO);
+			LOG("done fake-installing", LOG_VERBOSE);
 		}
 	}
 
 	else if(action == "rebuild"){
 		LOG("Action: rebuild", LOG_DEBUG);
 		if(COMPILER->clean()){
-			LOG("done cleaning", LOG_INFO);
+			LOG("done cleaning", LOG_VERBOSE);
 			FILES->initializeTmpDir();
 			if(COMPILER->compile() && COMPILER->link()){
-				LOG("done rebuilding", LOG_INFO);
+				LOG("done rebuilding", LOG_VERBOSE);
 			}else{
 				exit(1);
 			}
@@ -78,7 +78,7 @@ Spank::Spank(int argc, char** argv)
 	else if(action == "link"){
 		LOG("Action: link", LOG_DEBUG);
 		if(COMPILER->link()){
-			LOG("done linking", LOG_INFO);
+			LOG("done linking", LOG_VERBOSE);
 		}else{
 			exit(1);
 		}
@@ -87,7 +87,7 @@ Spank::Spank(int argc, char** argv)
 	else if(action == "clean"){
 		LOG("Action: clean", LOG_DEBUG);
 		if(COMPILER->clean()){
-			LOG("done cleaning", LOG_INFO);
+			LOG("done cleaning", LOG_VERBOSE);
 		}else{
 			exit(1);
 		}
@@ -96,7 +96,7 @@ Spank::Spank(int argc, char** argv)
 	else if(action == "export"){
 		LOG("Action: export", LOG_DEBUG);
 		if(EXPORT->exp( PROJECT->getValueStr("exportfile", 0) )){
-			LOG("done exporting", LOG_INFO);
+			LOG("done exporting", LOG_VERBOSE);
 		}else{
 			LOG("Export failed", LOG_ERROR);
 			exit(1);
@@ -217,7 +217,7 @@ void Spank::setTemplate(int type)
 	switch(type){
 		case TEMPLATE_CPP:
 		case TEMPLATE_CPP11:
-			LOG("Using template: c++", LOG_INFO);
+			LOG("Using template: c++", LOG_VERBOSE);
 			PROJECT->setValue("compiler", "$(host_dash)g++");
 			PROJECT->setValue("sources", "*.cpp");
 			PROJECT->setValue("template", "c++");
@@ -266,7 +266,7 @@ void Spank::printBanner(int banner)
 {
 	switch(banner){
 		case BANNER_LOGO:
-			LOG(SPANK_NAME << " " << SPANK_VERSION << " - Welcome to easy street.", LOG_INFO);
+			LOG(SPANK_NAME << " " << SPANK_VERSION << " - Welcome to easy street.", LOG_VERBOSE);
 			break;
 
 		case BANNER_USAGE:

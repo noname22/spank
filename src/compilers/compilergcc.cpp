@@ -138,7 +138,7 @@ void CompilerGcc::setIncludePaths()
 		// Read include directories
 		for(;;){
 			if(c++ > panic){ 
-				LOG("No End of search list found after " << c << " lines, bailing." , LOG_VERBOSE);
+				LOG("No End of search list found after " << c << " lines, bailing." , LOG_EXTRA_VERBOSE);
 				throw std::runtime_error("Unexpected output from the preprocessor");
 			}
 
@@ -273,7 +273,7 @@ bool CompilerGcc::checkRecompileRecursive(std::vector<std::string> stack, std::s
 			//if(first || last) ... wat. why was this here?
 			if(parse.size() < 3 || first == std::string::npos || last == std::string::npos){
 				LOG("Recursive recompile checker couldn't parse include directive, syntax error in " << src << ":" << lineNum << "?", LOG_WARNING);
-				LOG("Line: " << line, LOG_VERBOSE);
+				LOG("Line: " << line, LOG_EXTRA_VERBOSE);
 				continue;
 			}
 
@@ -285,7 +285,7 @@ bool CompilerGcc::checkRecompileRecursive(std::vector<std::string> stack, std::s
 			try { filename = lookUpIncludeFile(src, filename, localFirst); }
 
 			catch(...){
-				LOG("Recursive compile checker coulnd't find the included file: '" << filename << "' (at line " << lineNum << ")", LOG_VERBOSE);
+				LOG("Recursive compile checker coulnd't find the included file: '" << filename << "' (at line " << lineNum << ")", LOG_EXTRA_VERBOSE);
 			}
 
 			// Check for circluar includes
@@ -301,12 +301,12 @@ bool CompilerGcc::checkRecompileRecursive(std::vector<std::string> stack, std::s
 					return true;
 				}
 			} catch (std::runtime_error) {
-				LOG("The file " << filename << " is includes itself (directly or indirectly).", LOG_VERBOSE);
-				LOG("current include stack: ", LOG_VERBOSE);
+				LOG("The file " << filename << " is includes itself (directly or indirectly).", LOG_EXTRA_VERBOSE);
+				LOG("current include stack: ", LOG_EXTRA_VERBOSE);
 				for(std::vector<std::string>::iterator it = stack.begin(); it != stack.end(); it++){
-					LOG(*it, LOG_VERBOSE);
+					LOG(*it, LOG_EXTRA_VERBOSE);
 				}
-				LOG("then trying to include: " << filename, LOG_VERBOSE);
+				LOG("then trying to include: " << filename, LOG_EXTRA_VERBOSE);
 			}
 		}
 
@@ -485,15 +485,15 @@ bool CompilerGcc::localLink()
 {
 	std::string call = getLdCall(true);
 	if(call != ""){
-		LOG("Linking...", LOG_INFO);
-		LOG(call, LOG_VERBOSE);
+		LOG("Linking...", LOG_VERBOSE);
+		LOG(call, LOG_EXTRA_VERBOSE);
 		if(!system(call.c_str())){
 			return true;
 		}else{
 			return false;
 		}
 	}else{
-		LOG("Target up to date.", LOG_INFO);
+		LOG("Target up to date.", LOG_VERBOSE);
 		return true;
 	}
 }
@@ -515,18 +515,18 @@ std::string CompilerGcc::getPercent(int current, int of)
 
 bool CompilerGcc::localCompile()
 {
-	LOG("Checking dependencies...", LOG_INFO);
+	LOG("Checking dependencies...", LOG_VERBOSE);
 	if(!checkLibs()){
 		return false;
 	}
 
-	LOG("Preparing...", LOG_INFO);
+	LOG("Preparing...", LOG_VERBOSE);
 	std::vector<CList> cList = compileList();
 
 	if(cList.size() > 0){
-		LOG("Compiling...", LOG_INFO);
+		LOG("Compiling...", LOG_VERBOSE);
 	}else{
-		LOG("Nothing to compile.", LOG_VERBOSE);
+		LOG("Nothing to compile.", LOG_EXTRA_VERBOSE);
 		return true;
 	}
 	
@@ -536,12 +536,12 @@ bool CompilerGcc::localCompile()
 	int numJobs = PROJECT->getValueInt("jobs") - 1;
 	bool ret = true;
 
-	LOG("Compiling with " << numJobs + 1 << " jobs.", LOG_VERBOSE);
+	LOG("Compiling with " << numJobs + 1 << " jobs.", LOG_EXTRA_VERBOSE);
 
 	for(int i=0; i < (int)cList.size(); i++){
 		LOG("[ " << getPercent(i, (int)cList.size()) << " %] " << Tools::stripSrcDir(cList.at(i).src), LOG_INFO);
 		
-		LOG(cList.at(i).call.c_str(), LOG_VERBOSE);
+		LOG(cList.at(i).call.c_str(), LOG_EXTRA_VERBOSE);
 	
 		if(FILES->fileExists(cList.at(i).obj)){
 			LOG("Removing old object file: '" << cList.at(i).obj << "'", LOG_DEBUG);

@@ -108,8 +108,8 @@ std::vector<CList> CompilerMcs::compileList(bool rcCheck)
 bool CompilerMcs::localCompile()
 {
 	std::string call = getLdCall(false);
-	LOG("Compiling and linking...", LOG_INFO);
-	LOG(call, LOG_VERBOSE);
+	LOG("Compiling and linking...", LOG_VERBOSE);
+	LOG(call, LOG_EXTRA_VERBOSE);
 	if(call != "" && system(call.c_str()) == 0){
 		return true;
 	}

@@ -21,6 +21,7 @@
 
 enum errorlevels{
 	LOG_DEBUG,
+	LOG_EXTRA_VERBOSE,
 	LOG_VERBOSE,
 	LOG_INFO,
 	LOG_WARNING,

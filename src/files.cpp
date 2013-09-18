@@ -81,7 +81,7 @@ void Files::initializeTmpDir()
 			LOG("Couldn't create tmp-dir", LOG_FATAL);
 			exit(1);
 		}
-		LOG("created directory: " << tmp, LOG_VERBOSE);
+		LOG("created directory: " << tmp, LOG_EXTRA_VERBOSE);
 	}
 
 	if(!genSourceFileList(tmp)){

@@ -36,13 +36,13 @@ bool Compiler::link()
 		return false;
 	}
 
-	LOG("Running post-build scripts", LOG_VERBOSE);
+	LOG("Running post-build scripts", LOG_EXTRA_VERBOSE);
 	return Tools::executeAll("postbuildscript");
 }
 
 bool Compiler::compile()
 {
-	LOG("Running pre-build scripts", LOG_VERBOSE);
+	LOG("Running pre-build scripts", LOG_EXTRA_VERBOSE);
 
 	if(!Tools::executeAll("prebuildscript")){
 		return false;
@@ -53,7 +53,7 @@ bool Compiler::compile()
 
 bool Compiler::clean()
 {
-	LOG("Running on clean scripts", LOG_VERBOSE);
+	LOG("Running on clean scripts", LOG_EXTRA_VERBOSE);
 	if(!Tools::executeAll("oncleanscript")){
 		return false;
 	}
@@ -89,7 +89,7 @@ bool Compiler::checkExclude(std::string src)
 {
 	for(int i=0; i < PROJECT->getNumValues("exclude"); i++){
 		if(src == PROJECT->getValueStr("exclude", i)){
-			LOG("Excluding " << src << " from build.", LOG_VERBOSE);
+			LOG("Excluding " << src << " from build.", LOG_EXTRA_VERBOSE);
 			return true;
 		}
 	}

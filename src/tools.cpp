@@ -114,7 +114,7 @@ bool Tools::executeAll(std::string configItem, std::string prefix, bool fake)
 	for(int i=0; i < PROJECT->getNumValues(configItem); i++){
 		if(PROJECT->getValueStr(configItem, i) != ""){
 			FORMSTR(cmd, prefix << PROJECT->getValueStr(configItem, i));
-			LOG("Executing script: '" << cmd << "'", LOG_VERBOSE);
+			LOG("Executing script: '" << cmd << "'", LOG_EXTRA_VERBOSE);
 			if(fake){
 				LOG("[not executing] ..." << cmd, LOG_INFO);
 			}else{

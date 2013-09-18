@@ -18,19 +18,19 @@ bool InstallerUnix::install(bool fake)
 	FORMSTR(cp, PROJECT->getValueStr("inst_sudo") <<  " cp ");
 	FORMSTR(scriptPrefix, PROJECT->getValueStr("inst_sudo") <<  " ");
 
-	LOG("Making directories", LOG_VERBOSE);
+	LOG("Making directories", LOG_EXTRA_VERBOSE);
 	if(!Tools::executeAll("inst_mkdir", mkdir, fake)){
 		LOG("Couldn't create all directories", LOG_FATAL);
 		return false;
 	}
 
-	LOG("Executing pre-copy scripts", LOG_VERBOSE);
+	LOG("Executing pre-copy scripts", LOG_EXTRA_VERBOSE);
 	if(!Tools::executeAll("inst_prescript", scriptPrefix, fake)){
 		LOG("Failed to execeute one or more pre-copy install script", LOG_FATAL);
 		return false;
 	}
 
-	LOG("Copying files", LOG_VERBOSE);
+	LOG("Copying files", LOG_EXTRA_VERBOSE);
 	for(int i=0; i < PROJECT->getNumValues("inst_copy"); i += 2){
 
 		std::string from = PROJECT->getValueStr("inst_copy", i);
@@ -38,7 +38,7 @@ bool InstallerUnix::install(bool fake)
 
 		FORMSTR(cmd, cp << from << " " << to);
 
-		LOG("Installing: " << from << " -> " << to, LOG_INFO);
+		LOG("Installing: " << from << " -> " << to, LOG_VERBOSE);
 
 		if(fake){
 			LOG("[not executing] ... " << cmd, LOG_INFO);
@@ -50,7 +50,7 @@ bool InstallerUnix::install(bool fake)
 		}
 	}
 	
-	LOG("Executing post-copy scripts", LOG_VERBOSE);
+	LOG("Executing post-copy scripts", LOG_EXTRA_VERBOSE);
 	if(!Tools::executeAll("inst_postscript", scriptPrefix, fake)){
 		LOG("Failed to execeute one or more pre-copy install script", LOG_FATAL);
 		return false;

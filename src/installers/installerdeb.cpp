@@ -28,7 +28,7 @@ void InstallerDeb::setPrefix()
 bool InstallerDeb::writeControlFile()
 {
 	FORMSTR(cFile, controlDir << "/control");
-	LOG("Writing debian control file to: " << cFile, LOG_VERBOSE);
+	LOG("Writing debian control file to: " << cFile, LOG_EXTRA_VERBOSE);
 
 	std::ofstream control(cFile.c_str());
 
@@ -68,7 +68,7 @@ bool InstallerDeb::writeControlFile()
 
 bool InstallerDeb::writeMd5sumFile()
 {
-	LOG("Writing md5sum file to: " << controlDir << "/md5sums", LOG_VERBOSE);
+	LOG("Writing md5sum file to: " << controlDir << "/md5sums", LOG_EXTRA_VERBOSE);
 	FORMSTR(cmd, "cd " << dataDir << " && md5sum " << Tools::joinStrings(fileList));
 	Tools::execute(cmd, "../control/md5sums");
 	return true;
@@ -76,7 +76,7 @@ bool InstallerDeb::writeMd5sumFile()
 
 bool InstallerDeb::copyFiles()
 {
-	LOG("Copying files", LOG_VERBOSE);
+	LOG("Copying files", LOG_EXTRA_VERBOSE);
 	for(int i=0; i < PROJECT->getNumValues("inst_copy"); i += 2){
 
 		std::string from = PROJECT->getValueStr("inst_copy", i);
@@ -138,20 +138,20 @@ bool InstallerDeb::install(bool fake)
 	copyFiles();
 	writeMd5sumFile();
 
-	LOG("Writing debian binary file to: " << binaryFile, LOG_VERBOSE);
+	LOG("Writing debian binary file to: " << binaryFile, LOG_EXTRA_VERBOSE);
 	FILES->fileFromStr(binaryFile, "2.0\n");
 
-	LOG("Compressing data.", LOG_VERBOSE);
+	LOG("Compressing data.", LOG_EXTRA_VERBOSE);
 	
 	FORMSTR(dataCmd, PROJECT->getValueStr("tar") << " -czv --owner root --group root -C " << dataDir << " -f " << debDir << "/data.tar.gz .");
 	Tools::execute(dataCmd);
 	
-	LOG("Compressing control.", LOG_VERBOSE);
+	LOG("Compressing control.", LOG_EXTRA_VERBOSE);
 	
 	FORMSTR(controlCmd, PROJECT->getValueStr("tar") << " -czv --owner root --group root -C " << controlDir << " -f " << debDir << "/control.tar.gz .");
 	Tools::execute(controlCmd);
 
-	LOG("Assembling package.", LOG_VERBOSE);
+	LOG("Assembling package.", LOG_EXTRA_VERBOSE);
 
 	std::string packageName;
 
@@ -174,7 +174,7 @@ bool InstallerDeb::install(bool fake)
 	FORMSTR(pkgPath, debDir << "/" << pkgName);
 	FILES->copy(pkgPath, pkgName);
 
-	LOG("Finished building package: " << pkgName, LOG_INFO);
+	LOG("Finished building package: " << pkgName, LOG_VERBOSE);
 
 	return true;
 }

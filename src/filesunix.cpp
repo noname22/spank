@@ -79,12 +79,12 @@ bool FilesUnix::createDir(std::string dir)
 			);
 			return false;
 		}else{
-			LOG("Dir exists (" << dir << ")", LOG_VERBOSE);
+			LOG("Dir exists (" << dir << ")", LOG_EXTRA_VERBOSE);
 			return true;
 		}
 	}
 	
-	LOG("Creating directory ('" << dir << "')", LOG_VERBOSE);
+	LOG("Creating directory ('" << dir << "')", LOG_EXTRA_VERBOSE);
 	if(mkdir(dir.c_str(), 0700)){
 		LOG("Couldn't create directory.", LOG_FATAL);
 		return false;
@@ -122,7 +122,7 @@ bool FilesUnix::copy(std::string from, std::string to)
 
 bool FilesUnix::checkRecompilePp(std::string src)
 {
-	LOG("Checking if " << src << " needs recompiling...", LOG_VERBOSE);
+	LOG("Checking if " << src << " needs recompiling...", LOG_EXTRA_VERBOSE);
 
 	bool notBuilt=false, upToDate=false;
 
@@ -132,7 +132,7 @@ bool FilesUnix::checkRecompilePp(std::string src)
 
 	// if the preprocessor returns an error just continue, should be taken care of by the md5 diff and markRecompilePp
 	if(!writeMd5(src, md5tmp)){
-		LOG("The preprocessor returned an error: continuing ...", LOG_VERBOSE);
+		LOG("The preprocessor returned an error: continuing ...", LOG_EXTRA_VERBOSE);
 		//return true;
 	}
 
@@ -142,16 +142,16 @@ bool FilesUnix::checkRecompilePp(std::string src)
 	LOG(strFromFile(md5name), LOG_DEBUG);
 	
 	if(!fileExists(oName)){
-		LOG("'" << src << "' hasn't been built.", LOG_VERBOSE);
+		LOG("'" << src << "' hasn't been built.", LOG_EXTRA_VERBOSE);
 		notBuilt = true;
 	}
 
 	if(md5 == strFromFile(md5name) /* readMd5(md5name)*/ ){
-		LOG(src << " is up to date.", LOG_VERBOSE);
+		LOG(src << " is up to date.", LOG_EXTRA_VERBOSE);
 		upToDate = true;
 	}else{
-		LOG(src << " needs recompiling.", LOG_VERBOSE);
-		LOG("( " << md5 << " != " << strFromFile(md5name) << " )", LOG_VERBOSE);
+		LOG(src << " needs recompiling.", LOG_EXTRA_VERBOSE);
+		LOG("( " << md5 << " != " << strFromFile(md5name) << " )", LOG_EXTRA_VERBOSE);
 		if(!copy(md5tmp, md5name)){
 			LOG("Couldn't copy hash file", LOG_ERROR);
 		}
@@ -174,7 +174,7 @@ bool FilesUnix::find(std::string what, std::string where, std::string result)
 	findThis.append("\" >> ");
 	findThis.append(result);
 
-	LOG(findThis, LOG_VERBOSE);
+	LOG(findThis, LOG_EXTRA_VERBOSE);
 
 	if(system(findThis.c_str()) == 0){
 		return true;

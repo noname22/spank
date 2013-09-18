@@ -71,12 +71,12 @@ Installer* System::getInstallerInstance()
 	std::string installer = PROJECT->getValueStr("installer");
 
 	if(installer == "unix"){
-		LOG("Using installer: unix", LOG_VERBOSE);
+		LOG("Using installer: unix", LOG_EXTRA_VERBOSE);
 		return SInstallerUnix::getInstance();
 	}
 
 	if(installer == "deb"){
-		LOG("Using installer: deb", LOG_VERBOSE);
+		LOG("Using installer: deb", LOG_EXTRA_VERBOSE);
 		return SInstallerDeb::getInstance();
 	}
 
