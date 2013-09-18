@@ -1,0 +1,4 @@
+name dep_b
+targettype lib-static
+sourcedir src
+cflags Iinclude

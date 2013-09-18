@@ -39,6 +39,7 @@ class Spank{
 
 		void printBanner(int banner);
 		void handleArgs(int argc, const char* const* argv);
+		bool postBuild();
 
 		int getAction();
 

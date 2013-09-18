@@ -1,0 +1,3 @@
+name dep_test
+sourcedir src
+depends dep_a dep_b

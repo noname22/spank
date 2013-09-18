@@ -393,6 +393,8 @@ std::string CompilerGcc::getLdCall(bool rlCheck)
 	if(targettype != "lib-static" && PROJECT->getNumValues("lib-static"))
 		call << "`" << PROJECT->getValueStr("pkg-config") << PROJECT->getValueStr("lib-static", " --static --libs ", " ", "` ");
 
+	call << PROJECT->getValueStr("_dep_ldflags", " ", " ", " ", true); 
+
 	LOG("ldcall: " << call.str(), LOG_DEBUG);
 		
 	if(link){

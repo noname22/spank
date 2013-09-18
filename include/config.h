@@ -45,10 +45,8 @@ class Config{
 		void printItem(unsigned int index, int loglevel);
 	
 	public:
-		bool setValue(std::string variable, std::string value, int type);
-		bool setValue(std::string variable, std::string value);
-		bool addValue(std::string variable, std::string value, int type);
-		bool addValue(std::string variable, std::string value);
+		bool setValue(std::string variable, std::string value, int type = VAR_INTERNAL);
+		bool addValue(std::string variable, std::string value, int type = VAR_INTERNAL);
 		bool delValue(std::string variable);
 		bool overlayValue(std::string variable, std::string value);
 
@@ -60,8 +58,7 @@ class Config{
 		std::string getValueStr(std::string variable, int index = 0, int depth = 0); // depth should be considered private, used for recursion
 
 		std::string getValueStr(std::string variable, std::string separator);
-		std::string getValueStr(std::string variable, std::string addBefore, std::string separator);
-		std::string getValueStr(std::string variable, std::string addBefore, std::string separator, std::string addAfter);
+		std::string getValueStr(std::string variable, std::string addBefore, std::string separator, std::string addAfter = "", bool reverse = false);
 
 		bool getValueBool(std::string variable, int index = 0);
 		int getValueInt(std::string variable, int index = 0);

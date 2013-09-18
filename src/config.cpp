@@ -162,11 +162,6 @@ bool Config::setValue(std::string variable, std::string value, int type){
 	return setAddValue(C_SET, variable, value, type);
 }
 
-bool Config::setValue(std::string variable, std::string value)
-{
-	return setValue(variable, value, VAR_INTERNAL);
-}
-
 // Add a value only if it doesn't exist
 bool Config::overlayValue(std::string variable, std::string value)
 {
@@ -223,11 +218,6 @@ bool Config::addValue(std::string variable, std::string value, int type)
 	return setAddValue(C_ADD, variable, value, type);
 }
 
-bool Config::addValue(std::string variable, std::string value)
-{
-	return addValue(variable, value, VAR_INTERNAL);
-}
-
 bool Config::delValue(std::string variable)
 {
 	std::vector< ConfigItem >::iterator iter;
@@ -244,19 +234,17 @@ std::string Config::getValueStr(std::string variable, std::string separator){
 	return getValueStr(variable, "", separator, "");
 }
 
-
-std::string Config::getValueStr(std::string variable, std::string addBefore, std::string separator)
-{
-	return getValueStr(variable, addBefore, separator, "");
-}
-
-std::string Config::getValueStr(std::string variable, std::string addBefore, std::string separator, std::string addAfter)
+std::string Config::getValueStr(std::string variable, std::string addBefore, std::string separator, std::string addAfter, bool reverse)
 {
 	std::string ret;
 	if(lookUp(variable) != -1 && getValueStr(variable, 0) != ""){
 		ret.append(addBefore);
 		bool first = true;
-		for(int i=0; i < getNumValues(variable); i++){
+
+		int start = reverse ? getNumValues(variable) - 1 : 0;
+		int end = reverse ? -1 : getNumValues(variable);
+
+		for(int i = start; i != end; i += reverse ? -1 : 1){
 			if(first){
 				first = false;
 			}else{

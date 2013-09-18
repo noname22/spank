@@ -38,6 +38,7 @@ class Compiler
 		virtual bool checkLibs();
 
 	protected:
+		bool buildDeps();
 		bool checkExclude(std::string src);
 		int countLines(std::string name); 
 };

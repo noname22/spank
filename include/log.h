@@ -37,14 +37,6 @@ enum errorlevels{
 
 #define LOGIT(string, errorlevel) LOGI->log(__FILE__, __FUNCTION__, string, errorlevel)
 
-/*#define LOG(string, errorlevel){						\
-	SDL_SemWait(LOGI->semaphore);						\
-	LOGI->logString.str("");							\
-	LOGI->logString << string;							\
-	LOGIT(LOGI->logString.str(), errorlevel);			\
-	SDL_SemPost(LOGI->semaphore);						\
-}*/
-
 #define LOG(string, errorlevel) do{				\
 	std::ostringstream _tmpStr;					\
 	_tmpStr.str("");							\
@@ -52,6 +44,7 @@ enum errorlevels{
 	LOGIT(_tmpStr.str(), errorlevel);			\
 } while(0)
 
+#define LASSERT(_v, _msg) if(!(_v)) { LOG(_msg, LOG_FATAL); exit(1); }
 
 class Log{
 	public:

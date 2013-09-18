@@ -27,6 +27,9 @@ Spank::Spank(int argc, char** argv)
 	}
 
 	FILES->initializeTmpDir();
+	
+	if(PROJECT->getValueStr("spank") == "")
+		PROJECT->setValue("spank", FILES->realpath(argv[0]));
 
 	std::string action = PROJECT->getValueStr("action", 0);
 	if(action == "compile"){
@@ -40,7 +43,7 @@ Spank::Spank(int argc, char** argv)
 	
 	else if(action == "build"){
 		LOG("Action: build", LOG_DEBUG);
-		if(COMPILER->compile() && COMPILER->link()){
+		if(COMPILER->compile() && COMPILER->link() && postBuild()){
 			LOG("done building", LOG_VERBOSE);
 		}
 	}
@@ -48,7 +51,7 @@ Spank::Spank(int argc, char** argv)
 	else if(action == "install"){
 		LOG("Action: install", LOG_DEBUG);
 		INSTALLER->setPrefix();
-		if(COMPILER->compile() && COMPILER->link() && INSTALLER->install(false)){
+		if(COMPILER->compile() && COMPILER->link() && postBuild() && INSTALLER->install(false)){
 			LOG("done installing", LOG_VERBOSE);
 		}
 	}
@@ -65,7 +68,7 @@ Spank::Spank(int argc, char** argv)
 		if(COMPILER->clean()){
 			LOG("done cleaning", LOG_VERBOSE);
 			FILES->initializeTmpDir();
-			if(COMPILER->compile() && COMPILER->link()){
+			if(COMPILER->compile() && COMPILER->link() && postBuild()){
 				LOG("done rebuilding", LOG_VERBOSE);
 			}else{
 				exit(1);
@@ -77,7 +80,7 @@ Spank::Spank(int argc, char** argv)
 
 	else if(action == "link"){
 		LOG("Action: link", LOG_DEBUG);
-		if(COMPILER->link()){
+		if(COMPILER->link() && postBuild()){
 			LOG("done linking", LOG_VERBOSE);
 		}else{
 			exit(1);
@@ -108,6 +111,25 @@ Spank::Spank(int argc, char** argv)
 	}
 }
 
+bool Spank::postBuild()
+{
+	LOG("post build", LOG_DEBUG);
+	if(PROJECT->getValueBool("dep_printinfo")){
+		std::cerr << "target: " << FILES->realpath(PROJECT->getValueStr("dep_target")) << std::endl;
+		std::cerr << "targettype: " << PROJECT->getValueStr("targettype") << std::endl;
+
+		std::string sep = PROJECT->getValueBool("addhyphen") ? "-" : " ", prefix;
+		prefix.append(sep);
+
+		std::cerr << "cflags: " << PROJECT->getValueStr("dep_cflags", prefix, sep, " ") << 
+			PROJECT->getValueStr("dep_extra_cflags", prefix, sep, " ") << std::endl;
+
+		std::cerr << "ldflags: " << PROJECT->getValueStr("dep_ldflags", prefix, sep, " ") << 
+			PROJECT->getValueStr("dep_extra_ldflags", prefix, sep, " ") << std::endl;
+	}
+
+	return true;
+}
 
 void Spank::setTemplate(int type)
 {
@@ -141,11 +163,27 @@ void Spank::setTemplate(int type)
 		PROJECT->setValue("lib", "");
 		PROJECT->setValue("lib-static", "");
 		PROJECT->setValue("pkg-config", "PKG_CONFIG_PATH=$PKG_CONFIG_PATH:.:spank:$(prefix)/lib/pkgconfig pkg-config");
+		PROJECT->setValue("spank", "");
 		PROJECT->setValue("tar", "tar");
 		PROJECT->setValue("ar", "ar");
 		PROJECT->setValue("stripsrc", "false");
 		PROJECT->setValue("homedir", "$(HOME)/.spank");
 		PROJECT->setValue("jobs", "2");
+		PROJECT->setValue("targettype", "binary");
+		PROJECT->setValue("fpic", "-fPIC");
+		PROJECT->setValue("projectpath", FILES->realpath("."));
+		PROJECT->setValue("depends", "");
+		PROJECT->setValue("depaction", "build");
+		
+		PROJECT->setValue("dep_printinfo", "no");
+
+		// TODO merge this with general library info
+		PROJECT->setValue("dep_target", "$(target)");
+		PROJECT->setValue("dep_cflags", "I$(projectpath)/include");
+		PROJECT->setValue("dep_ldflags", "L$(projectpath) -l$(name)");
+		PROJECT->setValue("dep_extra_ldflags", "");
+		PROJECT->setValue("dep_extra_cflags", "");
+
 		PROJECT->addValue("addhyphen", "true");
 		PROJECT->addValue("prebuildscript", "");
 		PROJECT->addValue("postbuildscript", "");
@@ -157,8 +195,6 @@ void Spank::setTemplate(int type)
 		PROJECT->addValue("author", "author of $(name)");
 		PROJECT->addValue("description", "$(name) $(version)");
 		PROJECT->addValue("include", "");
-		PROJECT->setValue("targettype", "binary");
-		PROJECT->setValue("fpic", "-fPIC");
 
 		// Target platform defaults (posix/native)
 

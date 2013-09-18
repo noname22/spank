@@ -139,6 +139,8 @@ std::string Tools::genCFlags()
 		flags = PROJECT->getValueStr("cflags", " ", " ", " ");
 	}
 
+	ADDSTR(flags, PROJECT->getValueStr("_dep_cflags", " ", " ", " "));
+
 	if(PROJECT->getValueBool("spankdefs")){
 
 		std::string compiler = PROJECT->getValueStr("compiler");
@@ -197,7 +199,11 @@ std::string Tools::genLdFlags()
 		ret.append(PROJECT->getValueStr("lib-static", " --libs ", " ", "`"));
 	}
 
+	// TODO shouldn't this check for addhyphen?
 	ret.append(PROJECT->getValueStr("ldflags", "-", " -", " "));
+	
+	ADDSTR(ret, PROJECT->getValueStr("_dep_ldflags", " ", " ", " "));
+
 	return ret;
 }
 
@@ -245,31 +251,71 @@ std::string Tools::joinStrings(std::vector<std::string> & strs, std::string sepa
 
 	return ret;
 }
+
+std::vector<std::string> Tools::splitString(std::string str, char separator)
+{
+	std::vector<std::string> ret;
+
+	std::stringstream ss(str);
+	std::string item;
+
+	while (std::getline(ss, item, separator)) {
+		ret.push_back(item);
+	}
+
+	return ret;
+}
+
+std::string Tools::trim(const std::string s)
+{
+        return ltrim(rtrim(s));
+}
+
+std::string Tools::ltrim(std::string s)
+{
+        s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+        return s;
+}
+
+std::string Tools::rtrim(std::string s)
+{
+        s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+        return s;
+}
+
+std::string Tools::restOfString(std::string str, std::string startsWith)
+{
+	if(str.length() > startsWith.length() && str.substr(0, startsWith.length()) == startsWith)
+		return str.substr(startsWith.length());
+
+	return "";
+}
 		
-int Tools::execute(std::string cmd, std::string* out, std::string* err)
+int Tools::execute(std::string cmd, std::string* out, std::string* err, bool supress)
 {
 	FORMSTR(outFile, FILES->getTmpDirStr() << "/cmd_out"); // TODO not very thread safe etc.
 	FORMSTR(errFile, FILES->getTmpDirStr() << "/cmd_err"); // TODO not very thread safe etc.
 
-	std::string tmpCmd;
+	std::stringstream tmpCmd;
 
-	if(err || out){
-		SETSTR(tmpCmd, cmd << " >" << outFile << " 2>" << errFile);
-	}else{
-		SETSTR(tmpCmd, cmd << " > /dev/null 2> /dev/null");
-	}
+	tmpCmd << cmd;
 
-	LOG("Executing: " << tmpCmd, LOG_DEBUG);
+	if(out || supress)
+		tmpCmd << " >" << (out ? outFile : "/dev/null");
 
-	int ret = system(tmpCmd.c_str());
+	if(err || supress)
+		tmpCmd << " 2>" << (err ? errFile : "/dev/null");
+		
 
-	if(out){
+	LOG("Executing: " << tmpCmd.str(), LOG_DEBUG);
+
+	int ret = system(tmpCmd.str().c_str());
+
+	if(out)
 		*out = FILES->strFromFile(outFile);
-	}
 
-	if(err){
+	if(err)
 		*err = FILES->strFromFile(errFile);
-	}
 
 	return ret;
 }

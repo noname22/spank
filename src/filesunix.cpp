@@ -220,7 +220,7 @@ int FilesUnix::isDir (std::string path)
 
 std::string FilesUnix::getGlobalTmpDir()
 {
-	FORMSTR(name, PROJECT->getValueStr("target") << "." << getFullProjectPath());
+	FORMSTR(name, PROJECT->getValueStr("target") << "." << PROJECT->getValueStr("projectpath"));
 	std::string tmp = "/tmp/";
 	tmp.append(Tools::nameEnc(".tempfiles", name));
 	return tmp;
@@ -228,7 +228,7 @@ std::string FilesUnix::getGlobalTmpDir()
 
 std::string FilesUnix::getTmpDirStr()
 {
-	FORMSTR(name, PROJECT->getValueStr("target") << "." << getFullProjectPath());
+	FORMSTR(name, PROJECT->getValueStr("target") << "." << PROJECT->getValueStr("projectpath"));
 	FORMSTR(tmp, getHomeDir() << "/" << Tools::nameEnc(".tempfiles", name) << "/");
 	return tmp;
 }
@@ -281,12 +281,18 @@ std::string FilesUnix::baseName(std::string filename)
 	return ret;
 }
 
-std::string FilesUnix::getFullProjectPath()
+std::string FilesUnix::realpath(std::string filename)
 {
 	char buffer[PATH_MAX];
-	if(!realpath(".", buffer)){
-		LOG("could not get path to project directory", LOG_FATAL);
+	if(!::realpath(filename.c_str(), buffer)){
+		LOG("could not get real path for file: " << filename, LOG_FATAL);
 		exit(1);
 	}
 	return buffer;
+	
+}
+
+int FilesUnix::chdir(std::string dir)
+{
+	return ::chdir(dir.c_str());
 }

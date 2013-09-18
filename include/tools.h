@@ -21,6 +21,8 @@
 #include <sstream>		
 #include <vector>
 
+typedef std::vector<std::string> StrVec;
+
 class ForkResult
 {
 	public:
@@ -53,11 +55,16 @@ class Tools
 		static std::string toUpper(std::string in);
 		static std::string filenameify(std::string str);
 		static std::string getLineStream(std::istream& stream);
+		static std::string trim(std::string str);
+		static std::string rtrim(std::string str);
+		static std::string ltrim(std::string str);
 
-		static int execute(std::string cmd, std::string* std = NULL, std::string* out = NULL);
+		static int execute(std::string cmd, std::string* std = NULL, std::string* out = NULL, bool supress = true);
 		static int execute(std::string cmd, std::string stdFile, std::string errFile = "/dev/null");
 		static std::string deEscape(std::string str);
 		static std::string joinStrings(std::vector<std::string> & strs, std::string separator = " ");
+		static std::vector<std::string> splitString(std::string str, char separator = ' ');
+		static std::string restOfString(std::string str, std::string startsWith);
 
 		static std::vector<std::string> makeStrVector(std::string a);
 		static std::vector<std::string> makeStrVector(std::string a, std::string b);
