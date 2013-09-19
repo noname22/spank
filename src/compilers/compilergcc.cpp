@@ -21,13 +21,13 @@
 #include "tools.h"
 #include "macros.h"
 
-// Makes a list of all source files in the project.
-// If rcCheck is true it only returns the files that need recompilation
 CompilerGcc::CompilerGcc()
 {
 	hasPkgConfig = false;
 }
 
+// Makes a list of all source files in the project.
+// If rcCheck is true it only returns the files that need recompilation
 std::vector<CList> CompilerGcc::compileList(bool rcCheck)
 {
 	std::vector<CList> cList;
@@ -195,6 +195,10 @@ std::string CompilerGcc::lookUpIncludeFile(std::string src, std::string filename
 
 	throw std::runtime_error("no file");
 }
+
+// checks if a file needs recompilation by parsing all include directives found and checking the date of the files
+// TODO line breaks in C++ style comments, '\'
+// TODO trigraph line breaks, although they could probably be safely ignored
 
 bool CompilerGcc::checkRecompileRecursive(std::vector<std::string> stack, std::string src, std::string obj, int depth)
 {
