@@ -7,7 +7,7 @@
 //
 // License: GPLv2
 
-#include "compilers/compilergcc.h"
+#include "compilergcc.h"
 
 #include <string>
 #include <fstream>

@@ -7,7 +7,7 @@
 //
 // License: GPLv2
 
-#include "exporters/exportmakefile.h"
+#include "exportmakefile.h"
 
 #include <fstream>
 #include <string>

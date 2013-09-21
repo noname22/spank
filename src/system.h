@@ -13,14 +13,14 @@
 #include "singleton.h"
 
 #include "filesunix.h"
-#include "compilers/compilergcc.h"
-#include "compilers/compilermcs.h"
-#include "compilers/compilervala.h"
-#include "exporters/exportshell.h"
-#include "exporters/exportmakefile.h"
+#include "compilergcc.h"
+#include "compilermcs.h"
+#include "compilervala.h"
+#include "exportshell.h"
+#include "exportmakefile.h"
 
-#include "installers/installerunix.h"
-#include "installers/installerdeb.h"
+#include "installerunix.h"
+#include "installerdeb.h"
 
 #define FILES System::getFilesInstance()
 #define COMPILER System::getCompilerInstance()

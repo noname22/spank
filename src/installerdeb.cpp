@@ -10,7 +10,7 @@
 #include <fstream>
 #include <cstdlib>
 
-#include "installers/installerdeb.h"
+#include "installerdeb.h"
 #include "system.h"
 #include "project.h"
 #include "tools.h"

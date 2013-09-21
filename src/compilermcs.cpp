@@ -7,7 +7,7 @@
 //
 // License: GPLv2
 
-#include "compilers/compilermcs.h"
+#include "compilermcs.h"
 
 #include <string>
 #include <fstream>

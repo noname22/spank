@@ -7,7 +7,7 @@
 //
 // License: GPLv2
 
-#include "compilers/compilervala.h"
+#include "compilervala.h"
 
 #include <string>
 #include <fstream>

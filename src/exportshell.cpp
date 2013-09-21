@@ -7,7 +7,7 @@
 //
 // License: GPLv2
 
-#include "exporters/exportshell.h"
+#include "exportshell.h"
 
 #include <fstream>
 #include <string>

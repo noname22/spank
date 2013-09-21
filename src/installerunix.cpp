@@ -1,6 +1,6 @@
 #include <cstdlib>
 
-#include "installers/installerunix.h"
+#include "installerunix.h"
 #include "project.h"
 #include "tools.h"
 #include "macros.h"
