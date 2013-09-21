@@ -41,6 +41,11 @@ bool Compiler::link()
 	return Tools::executeAll("postbuildscript");
 }
 
+std::string Compiler::genCFlags(bool includeLibs)
+{
+	return "";
+}
+
 bool Compiler::buildDeps()
 {
 	std::string cfgVal = "depends";

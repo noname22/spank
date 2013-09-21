@@ -172,6 +172,7 @@ void Spank::setTemplate(int type)
 		PROJECT->setValue("targettype", "binary");
 		PROJECT->setValue("fpic", "-fPIC");
 		PROJECT->setValue("projectpath", FILES->realpath("."));
+		PROJECT->setValue("compilation-strategy", "file-by-file");
 		PROJECT->setValue("depends", "");
 		PROJECT->setValue("depaction", "build");
 		

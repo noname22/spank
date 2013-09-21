@@ -34,8 +34,6 @@ class Files
 		virtual std::string getHomeDir() = 0;
 		virtual std::string getTmpDirStr() = 0;
 		virtual std::string getGlobalTmpDir() = 0;
-		virtual bool checkRecompilePp(std::string src) = 0;
-		virtual void markRecompilePp(std::string src) = 0;
 		virtual void wait() = 0;
 		virtual std::pair<std::string, std::string> pathSplit(std::string path) = 0;
 		virtual bool copy(std::string from, std::string to) = 0;

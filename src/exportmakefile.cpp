@@ -54,7 +54,7 @@ bool ExportMakefile::exp(std::string fileName)
 		file << " " << cList.at(i).obj.c_str();
 	}
 
-	file << std::endl << "CFLAGS= " << Tools::genCFlags() << std::endl;
+	file << std::endl << "CFLAGS= " << COMPILER->genCFlags() << std::endl;
 	file << "LDCALL= " << COMPILER->getLdCall(false) << std::endl;
 	file << "COMPILER=" << PROJECT->getValueStr("compiler", 0) << std::endl;
 	file << "TARGET=" << PROJECT->getValueStr("target", 0) << std::endl << std::endl;

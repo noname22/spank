@@ -22,25 +22,27 @@ struct CList{
 class Compiler
 {
 	public:
-		bool compile();
-		bool link();
-		bool clean();
+	bool compile();
+	bool link();
+	bool clean();
 
-		virtual bool localCompile() = 0;
-		virtual bool localLink() = 0;
-		virtual bool localClean();
+	virtual std::string genCFlags(bool includeLibs = false);
 
-		virtual ~Compiler();
-		
-		virtual std::string getLdCall(bool rlCheck) = 0;
-		virtual std::vector<CList> compileList(bool rcCheck = true) = 0;
+	virtual bool localCompile() = 0;
+	virtual bool localLink() = 0;
+	virtual bool localClean();
 
-		virtual bool checkLibs();
+	virtual ~Compiler();
+
+	virtual std::string getLdCall(bool rlCheck) = 0;
+	virtual std::vector<CList> compileList(bool rcCheck = true) = 0;
+
+	virtual bool checkLibs();
 
 	protected:
-		bool buildDeps();
-		bool checkExclude(std::string src);
-		int countLines(std::string name); 
+	bool buildDeps();
+	bool checkExclude(std::string src);
+	int countLines(std::string name); 
 };
 
 #endif

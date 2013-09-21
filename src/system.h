@@ -10,6 +10,9 @@
 // This class contains functions returning base-class pointers to approperiate singletons.
 // Like, if you're on a unix-system, getFilesInstance() returns "Files"-pointer to "FilesUnix" singleton instance
 
+#ifndef SYSTEM_H
+#define SYSTEM_H
+
 #include "singleton.h"
 
 #include "filesunix.h"
@@ -53,3 +56,5 @@ class System
 		static Export* getExportInstance();
 		static Installer* getInstallerInstance();
 };
+
+#endif

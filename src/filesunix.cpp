@@ -25,22 +25,6 @@
 #include "tools.h"
 #include "macros.h"
 
-// Invokes the preprocessor and pipes the result through md5sum
-bool FilesUnix::writeMd5(std::string src, std::string file)
-{
-	// TODO: should be implemented in the compiler
-
-	FORMSTR(cppOut, getTmpDir() << "/cpp_out");
-	FORMSTR(call, PROJECT->getValueStr("pp") << " -nostdinc -nostdinc++ " << Tools::genCFlags() << " " << src);
-
-	bool ret = !Tools::execute(call, cppOut);
-
-	SETSTR(call, "md5sum " << cppOut << " | cut -b -32");
-	Tools::execute(call, file);
-
-	return ret;
-}
-
 std::string getUserHomeDir()
 {
 	struct passwd *passwd;
@@ -118,46 +102,6 @@ bool FilesUnix::copy(std::string from, std::string to)
 {
 	FORMSTR(cmd, "cp \"" << from << "\" \"" << to << "\"");
 	return !Tools::execute(cmd);
-}
-
-bool FilesUnix::checkRecompilePp(std::string src)
-{
-	LOG("Checking if " << src << " needs recompiling...", LOG_EXTRA_VERBOSE);
-
-	bool notBuilt=false, upToDate=false;
-
-	FORMSTR(md5name, getTmpDir() << Tools::nameEnc(".pp.md5", src)); // The final filename of the recompile check checksum
-	FORMSTR(md5tmp, getTmpDir() << "md5tmp"); // The temporary md5sum to check against saved checksum (above)
-	FORMSTR(oName, getTmpDir() << Tools::nameEnc(".o", src)); // Target object file
-
-	// if the preprocessor returns an error just continue, should be taken care of by the md5 diff and markRecompilePp
-	if(!writeMd5(src, md5tmp)){
-		LOG("The preprocessor returned an error: continuing ...", LOG_EXTRA_VERBOSE);
-		//return true;
-	}
-
-	std::string md5 = strFromFile(md5tmp);
-
-	LOG("MD5 sum of preprocessed '" << src << "' is '" << md5 << "'", LOG_DEBUG);
-	LOG(strFromFile(md5name), LOG_DEBUG);
-	
-	if(!fileExists(oName)){
-		LOG("'" << src << "' hasn't been built.", LOG_EXTRA_VERBOSE);
-		notBuilt = true;
-	}
-
-	if(md5 == strFromFile(md5name) /* readMd5(md5name)*/ ){
-		LOG(src << " is up to date.", LOG_EXTRA_VERBOSE);
-		upToDate = true;
-	}else{
-		LOG(src << " needs recompiling.", LOG_EXTRA_VERBOSE);
-		LOG("( " << md5 << " != " << strFromFile(md5name) << " )", LOG_EXTRA_VERBOSE);
-		if(!copy(md5tmp, md5name)){
-			LOG("Couldn't copy hash file", LOG_ERROR);
-		}
-	}
-
-	return !upToDate || notBuilt;
 }
 
 void FilesUnix::wait()

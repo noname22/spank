@@ -128,85 +128,6 @@ bool Tools::executeAll(std::string configItem, std::string prefix, bool fake)
 	return true;
 }
 
-// TODO why is this here and not in compilergcc?
-std::string Tools::genCFlags()
-{
-	std::string flags;
-	
-	if(PROJECT->getValueBool("addhyphen")){
-		flags = PROJECT->getValueStr("cflags", "-", " -", " ");
-	}else{
-		flags = PROJECT->getValueStr("cflags", " ", " ", " ");
-	}
-
-	ADDSTR(flags, PROJECT->getValueStr("_dep_cflags", " ", " ", " "));
-
-	if(PROJECT->getValueBool("spankdefs")){
-
-		std::string compiler = PROJECT->getValueStr("compiler");
-
-		if(PROJECT->getValueStr("compilertype") == "gcc"){ // TODO: less ghetto compiler detection
-			flags.append("-DSPANK_COMPILER_GCC ");
-			// the only supported enviroment as of yet
-			flags.append("-DSPANK_ENV_UNIX ");
-
-
-			flags.append("-DSPANK_ENV_UNIX ");
-			ADDSTR(flags, "-D'SPANK_TARGET_PLATFORM=\"" << PROJECT->getValueStr("target_platform") << "\"' ");
-			ADDSTR(flags, "-DSPANK_TARGET_PLATFORM_" << toUpper(PROJECT->getValueStr("target_platform")) << " ");
-
-			ADDSTR(flags, "-D'SPANK_NAME=\"" << PROJECT->getValueStr("name") << "\"' ");
-			ADDSTR(flags, "-D'SPANK_BINNAME=\"" << PROJECT->getValueStr("target") << "\"' ");
-			ADDSTR(flags, "-D'SPANK_VERSION=\"" << PROJECT->getValueStr("version") << "\"' ");
-			ADDSTR(flags, "-D'SPANK_HOMEPAGE=\"" << PROJECT->getValueStr("homepage", " - ") << "\"' ");
-			ADDSTR(flags, "-D'SPANK_AUTHOR=\"" << PROJECT->getValueStr("author", ", ") << "\"' ");
-			ADDSTR(flags, "-D'SPANK_EMAIL=\"" << PROJECT->getValueStr("email", " - ") << "\"' ");
-			ADDSTR(flags, "-D'SPANK_PREFIX=\"" << PROJECT->getValueStr("inst_prefix") << "\"' ");
-
-		}
-	}
-		
-	if(PROJECT->getNumValues("lib")){
-		flags.append(" `");
-		flags.append(PROJECT->getValueStr("pkg-config"));
-		flags.append(PROJECT->getValueStr("lib", " --cflags ", " ", "`"));
-	}
-	
-	if(PROJECT->getNumValues("lib-static")){
-		flags.append(" `");
-		flags.append(PROJECT->getValueStr("pkg-config"));
-		flags.append(PROJECT->getValueStr("lib-static", " --static --cflags ", " ", "`"));
-	}
-
-	return flags;
-}
-
-// TODO is this even used anywhere?
-std::string Tools::genLdFlags()
-{
-	std::string ret;
-
-	
-	if(PROJECT->getNumValues("lib")){
-		ret = "`";
-		ret.append(PROJECT->getValueStr("pkg-config"));
-		ret.append(PROJECT->getValueStr("lib", " --libs ", " ", "`"));
-	}
-	
-	if(PROJECT->getNumValues("lib-static")){
-		ret = "`";
-		ret.append(PROJECT->getValueStr("pkg-config"));
-		ret.append(PROJECT->getValueStr("lib-static", " --libs ", " ", "`"));
-	}
-
-	// TODO shouldn't this check for addhyphen?
-	ret.append(PROJECT->getValueStr("ldflags", "-", " -", " "));
-	
-	ADDSTR(ret, PROJECT->getValueStr("_dep_ldflags", " ", " ", " "));
-
-	return ret;
-}
-
 std::string Tools::stripSrcDir(std::string name)
 {
 	std::string sourcedir;
@@ -395,4 +316,13 @@ std::vector<std::string> Tools::makeStrVector(std::string a, std::string b, std:
 	ret.push_back(c);
 	ret.push_back(d);
 	return ret;
+}
+
+
+bool Tools::endsWith(std::string str, std::string suffix)
+{
+	if(suffix.size() > str.size())
+		return false;
+
+	return std::mismatch(suffix.rbegin(), suffix.rend(), str.rbegin()).first == suffix.rend();
 }

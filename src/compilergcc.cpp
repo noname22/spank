@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <cstring>
 #include <stdexcept>
+#include <set>
 
 #include "system.h"
 #include "settings.h"
@@ -27,80 +28,51 @@ CompilerGcc::CompilerGcc()
 }
 
 // Makes a list of all source files in the project.
+std::set<std::string> CompilerGcc::getSourceList()
+{
+	std::ifstream listFile(FILES->combinePath(Tools::makeStrVector(FILES->getTmpDir(), "filelist")).c_str());
+	std::set<std::string> list;
+
+	while(listFile.good()){
+		std::string line;
+		getline(listFile, line);
+
+		if(line != "" && !checkExclude(line))
+			list.insert(line);
+		
+	}
+
+	listFile.close();
+
+	return list;
+}
+
+// Returns a vector with compile commands to be executed, eg gcc -c file.c -o file.o
 // If rcCheck is true it only returns the files that need recompilation
 std::vector<CList> CompilerGcc::compileList(bool rcCheck)
 {
 	std::vector<CList> cList;
+	std::ofstream objectList(FILES->combinePath(Tools::makeStrVector(FILES->getTmpDir(), "objectlist")).c_str());
+	std::set<std::string> list = getSourceList();
 
-	char line[SPANK_MAX_LINE];	
-	std::string open = FILES->getTmpDir();
-	std::string objListName = open;
-
-	open.append("/filelist");
-	std::ifstream list(open.c_str());
-
-	objListName.append("/objectlist");
-	std::ofstream objectList(objListName.c_str());
-
-	int count=0, srcCount=0;
-
-	cList.clear();
-	std::vector<std::string> dupCheck;
-
-	while(list.good()){
-		// TODO refactor to use std::string instead
-		srcCount++;
-		list.getline(line, SPANK_MAX_LINE);
-		
-		// ignore empty lines
-		if(strlen(line) == 0)
-			continue;
-			
-		std::string obj = FILES->getTmpDir();
-		obj.append("/");
-		obj.append(Tools::nameEnc(".o", line));
-
-		// ignore duplicates
-		for(std::vector<std::string>::iterator it = dupCheck.begin(); it != dupCheck.end(); it++)
-			if(obj == *it)
-				continue;
-
-		dupCheck.push_back(obj);
-		std::string src = line;
-
-		// ignore excluded sources
-		if(checkExclude(src))
-			continue;
-
+	for(std::set<std::string>::iterator it = list.begin(); it != list.end(); it++){
+		std::string obj = FILES->combinePath(Tools::makeStrVector(FILES->getTmpDir(), Tools::nameEnc(".o", *it)));
 		objectList << obj << std::endl;
 
-		if(!rcCheck || checkRecompile(src, obj)){
+		if(!rcCheck || checkRecompile(*it, obj)){
 			CList tmp;
 			
-			count++;
-			std::string call;
+			std::stringstream call;
 
-			call = PROJECT->getValueStr("compiler", 0);
-			call.append(" ");
-			call.append(Tools::genCFlags());
+			call << PROJECT->getValueStr("compiler", 0) << " -c " << *it << " " << genCFlags();
 
-			// already taken care of in genCFlags
-			/*for(int p = 0; p < PROJECT->getNumValues("lib"); p++){
-				call.append(pkgGetFlags(PROJECT->getValueStr("lib", p), true));
-			}*/
+			if(PROJECT->getValueStr("targettype") == "lib-shared")
+				call << PROJECT->getValueStr("fpic") << " ";
 
-			if(PROJECT->getValueStr("targettype") == "lib-shared"){
-				call.append(PROJECT->getValueStr("fpic"));
-				call.append(" ");
-			}
-
-			call.append("-c -o ");
-			call.append(obj);
-			call.append(" ");
-			call.append(src);
+			call << "-o " << obj;
 			
-			tmp.call = call;
-			tmp.src = src;
+			tmp.call = call.str();
+			tmp.src = *it;
 			tmp.obj = obj;
 			
 			cList.push_back(tmp);
@@ -108,7 +80,7 @@ std::vector<CList> CompilerGcc::compileList(bool rcCheck)
 	}
 
 	// TODO HACK
-	if(srcCount == 1){
+	if(list.size() == 0){
 		LOG("Nothing to do.", LOG_INFO);
 		exit(0);
 	}
@@ -127,7 +99,7 @@ void CompilerGcc::setIncludePaths()
 		dashx = "-x c++";
 	}
 
-	FORMSTR(cmd, "echo | " << PROJECT->getValueStr("pp") << " " << Tools::genCFlags() << dashx << " - -v");
+	FORMSTR(cmd, "echo | " << PROJECT->getValueStr("pp") << " " << genCFlags() << dashx << " - -v");
 	std::string out;
 
 	Tools::execute(cmd, 0, &out);
@@ -326,22 +298,17 @@ bool CompilerGcc::checkRecompile(std::string src, std::string obj)
 	// wrapper from files-function depending on method
 	// Rename it? To what?
 
-	if(PROJECT->getValueStr("rccheck", 0) == "pp"){
-		return (FILES->checkRecompilePp(src));
-	}else if(PROJECT->getValueStr("rccheck", 0) == "recursive"){
+	if(PROJECT->getValueStr("rccheck", 0) == "recursive"){
 		std::vector<std::string> stack;
 		return checkRecompileRecursive(stack, src, obj);
-	}else{
-		return FILES->checkRecompile(src, obj);
 	}
+
+	return FILES->checkRecompile(src, obj);
 }
 
 void CompilerGcc::markRecompile(std::string src, std::string obj)
 {
 	FILES->erase(obj);
-	if(PROJECT->getValueStr("rccheck", 0) == "pp"){
-		FILES->markRecompilePp(src);
-	}
 }
 
 std::string CompilerGcc::getLdCall(bool rlCheck)
@@ -489,6 +456,9 @@ bool CompilerGcc::checkLibs()
 
 bool CompilerGcc::localLink()
 {
+	if(PROJECT->getValueStr("compilation-strategy") == "single-call")
+		return true;
+	
 	std::string call = getLdCall(true);
 	if(call != ""){
 		LOG("Linking...", LOG_VERBOSE);
@@ -520,6 +490,144 @@ std::string CompilerGcc::getPercent(int current, int of)
 }
 
 bool CompilerGcc::localCompile()
+{
+	std::string strategy = PROJECT->getValueStr("compilation-strategy");
+
+	if(strategy == "single-call")
+		return compileSingleCall();
+	else if (strategy == "amalgamate")
+		return compileAmalgamate();
+
+	return compileFileByFile();
+}
+
+std::string CompilerGcc::genCFlags(bool includeLibs)
+{
+	std::string flags;
+	
+	if(PROJECT->getValueBool("addhyphen")){
+		flags = PROJECT->getValueStr("cflags", "-", " -", " ");
+	}else{
+		flags = PROJECT->getValueStr("cflags", " ", " ", " ");
+	}
+
+	ADDSTR(flags, PROJECT->getValueStr("_dep_cflags", " ", " ", " "));
+
+	if(PROJECT->getValueBool("spankdefs")){
+
+		std::string compiler = PROJECT->getValueStr("compiler");
+
+		if(PROJECT->getValueStr("compilertype") == "gcc"){ // TODO: less ghetto compiler detection
+			flags.append("-DSPANK_COMPILER_GCC ");
+			// the only supported enviroment as of yet
+			flags.append("-DSPANK_ENV_UNIX ");
+
+
+			flags.append("-DSPANK_ENV_UNIX ");
+			ADDSTR(flags, "-D'SPANK_TARGET_PLATFORM=\"" << PROJECT->getValueStr("target_platform") << "\"' ");
+			ADDSTR(flags, "-DSPANK_TARGET_PLATFORM_" << Tools::toUpper(PROJECT->getValueStr("target_platform")) << " ");
+
+			ADDSTR(flags, "-D'SPANK_NAME=\"" << PROJECT->getValueStr("name") << "\"' ");
+			ADDSTR(flags, "-D'SPANK_BINNAME=\"" << PROJECT->getValueStr("target") << "\"' ");
+			ADDSTR(flags, "-D'SPANK_VERSION=\"" << PROJECT->getValueStr("version") << "\"' ");
+			ADDSTR(flags, "-D'SPANK_HOMEPAGE=\"" << PROJECT->getValueStr("homepage", " - ") << "\"' ");
+			ADDSTR(flags, "-D'SPANK_AUTHOR=\"" << PROJECT->getValueStr("author", ", ") << "\"' ");
+			ADDSTR(flags, "-D'SPANK_EMAIL=\"" << PROJECT->getValueStr("email", " - ") << "\"' ");
+			ADDSTR(flags, "-D'SPANK_PREFIX=\"" << PROJECT->getValueStr("inst_prefix") << "\"' ");
+
+		}
+	}
+
+	if(PROJECT->getNumValues("lib")){
+		flags.append(" `");
+		flags.append(PROJECT->getValueStr("pkg-config"));
+		flags.append(PROJECT->getValueStr("lib", includeLibs ? " --cflags --libs " : " --cflags ", " ", "`"));
+	}
+	
+	if(PROJECT->getNumValues("lib-static")){
+		flags.append(" `");
+		flags.append(PROJECT->getValueStr("pkg-config"));
+		flags.append(PROJECT->getValueStr("lib-static", includeLibs ? " --static --cflags --libs " : " --static --cflags ", " ", "`"));
+	}
+
+	return flags;
+}
+
+bool CompilerGcc::compileAmalgamate()
+{
+	LOG("Compiling with single call...", LOG_VERBOSE);
+
+	std::set<std::string> list = getSourceList();
+	
+	// TODO HACK
+	if(list.size() == 0){
+		LOG("Nothing to do.", LOG_INFO);
+		exit(0);
+	}
+	
+	std::ofstream objectList(FILES->combinePath(Tools::makeStrVector(FILES->getTmpDir(), "objectlist")).c_str());
+	std::string object = FILES->combinePath(Tools::makeStrVector(FILES->getTmpDir(), "all_sources.o"));
+	objectList << object << std::endl;
+
+	std::stringstream vfile;
+
+	for(std::set<std::string>::iterator it = list.begin(); it != list.end(); it++)
+		vfile << "#include \\\"" << *it << "\\\"\\n";
+
+	LOG(vfile.str(), LOG_DEBUG);
+
+	std::string compiler = PROJECT->getValueStr("compiler");
+
+	// TODO HACK this should be detected properly
+	std::string dashx = Tools::endsWith(compiler, "++") ? " -xc++ " : " -xc ";
+	
+	std::stringstream call;	
+	call << "`which echo` -e \"\\n" << vfile.str() << "\" | " << compiler << dashx << " -c " << " - " << genCFlags();
+
+	if(PROJECT->getValueStr("targettype") == "lib-shared")
+		call << PROJECT->getValueStr("fpic") << " ";
+
+	call << "-o " << object;
+
+	return Tools::execute(call.str(), 0, 0, false) == 0;
+}
+
+bool CompilerGcc::compileSingleCall()
+{
+	std::ifstream listFile(FILES->combinePath(Tools::makeStrVector(FILES->getTmpDir(), "filelist")).c_str());
+	std::set<std::string> list;
+
+	while(listFile.good()){
+		std::string line;
+		getline(listFile, line);
+
+		if(line != "")
+			list.insert(line);
+	}
+
+	listFile.close();
+
+	std::string hyphen = PROJECT->getValueBool("addhyphen") ? " -" : " ";
+	std::string ldFlags = PROJECT->getValueStr("ldflags", hyphen, hyphen, " ");
+	
+	std::stringstream call;
+	call << PROJECT->getValueStr("compiler", 0) << " ";
+
+	for(std::set<std::string>::iterator it = list.begin(); it != list.end(); it++)
+		call  << *it << " ";
+
+	call << genCFlags(true) << " " << ldFlags << " "; 
+
+	if(PROJECT->getValueStr("targettype") == "lib-shared"){
+		call << PROJECT->getValueStr("fpic") << " ";
+	}
+
+	call << " -o " << PROJECT->getValueStr("target");
+
+	return Tools::execute(call.str(), 0, 0, false) == 0;
+}
+
+bool CompilerGcc::compileFileByFile()
 {
 	LOG("Checking dependencies...", LOG_VERBOSE);
 	if(!checkLibs()){
