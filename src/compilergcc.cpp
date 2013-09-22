@@ -106,7 +106,7 @@ void CompilerGcc::setIncludePaths(std::string filename)
 
 	std::string dashx = guessLanguage(filename) == "c++" ? " -x c++" : "";
 
-	FORMSTR(cmd, "echo | " << PROJECT->getValueStr("pp") << " " << genCFlags(filename) << dashx << " - -v");
+	FORMSTR(cmd, PROJECT->getValueStr("pp") << " " << genCFlags(filename) << dashx << " -v " << "\"" << filename << "\"");
 	std::string out;
 
 	Tools::execute(cmd, 0, &out);
@@ -606,7 +606,7 @@ std::string CompilerGcc::genCFlags(std::string filename, bool includeLibs, std::
 				//LOG("sflag: " << ext.substr(pos + 1), LOG_DEBUG);	
 			}
 		}else{
-			flags << flag << " ";
+			flags << hyphen << flag << " ";
 			//LOG("flag: " << flag, LOG_DEBUG);	
 		}
 	}

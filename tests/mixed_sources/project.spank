@@ -1,0 +1,3 @@
+name mixed_sources
+cflags .c/std=c99
+cflags .cpp/std=c++0x
