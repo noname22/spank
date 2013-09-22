@@ -214,10 +214,12 @@ std::string FilesUnix::baseName(std::string filename)
 std::string FilesUnix::realpath(std::string filename)
 {
 	char buffer[PATH_MAX];
+
 	if(!::realpath(filename.c_str(), buffer)){
-		LOG("could not get real path for file: " << filename, LOG_FATAL);
-		exit(1);
+		LOG("realname() for " << filename << " failed.", LOG_EXTRA_VERBOSE);
+		return "";
 	}
+
 	return buffer;
 	
 }

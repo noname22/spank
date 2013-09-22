@@ -28,8 +28,18 @@ Spank::Spank(int argc, char** argv)
 
 	FILES->initializeTmpDir();
 	
-	if(PROJECT->getValueStr("spank") == "")
-		PROJECT->setValue("spank", FILES->realpath(argv[0]));
+	if(PROJECT->getValueStr("spank") == ""){
+		// if spank is started from a relative path, like ../spank
+		// do a realpath lookup for it to make sure that's the command used
+		// when recursing.
+
+		std::string spankBin = FILES->realpath(argv[0]);
+
+		if(spankBin == "")
+			spankBin = argv[0];			
+
+		PROJECT->setValue("spank", spankBin);
+	}
 
 	std::string action = PROJECT->getValueStr("action", 0);
 	if(action == "compile"){
@@ -115,7 +125,9 @@ bool Spank::postBuild()
 {
 	LOG("post build", LOG_DEBUG);
 	if(PROJECT->getValueBool("dep_printinfo")){
-		std::cerr << "target: " << FILES->realpath(PROJECT->getValueStr("dep_target")) << std::endl;
+		std::string target = FILES->realpath(PROJECT->getValueStr("dep_target"));
+		LASSERT(target != "", "could not locate target");
+		std::cerr << "target: " << target << std::endl;
 		std::cerr << "targettype: " << PROJECT->getValueStr("targettype") << std::endl;
 
 		std::string sep = PROJECT->getValueBool("addhyphen") ? "-" : " ", prefix;
@@ -133,8 +145,13 @@ bool Spank::postBuild()
 
 void Spank::setTemplate(int type)
 {
+
 	if(!templateOnce){
 		templateOnce = true;
+		
+		std::string currPath = FILES->realpath(".");
+		LASSERT(currPath != "", "could not locate current path!");
+		
 
 		// Common defaults
 		
@@ -172,7 +189,7 @@ void Spank::setTemplate(int type)
 		PROJECT->setValue("jobs", "2");
 		PROJECT->setValue("targettype", "binary");
 		PROJECT->setValue("fpic", "-fPIC");
-		PROJECT->setValue("projectpath", FILES->realpath("."));
+		PROJECT->setValue("projectpath", currPath);
 		PROJECT->setValue("compilation-strategy", "file-by-file");
 		PROJECT->setValue("stdlibs", "no");
 
