@@ -290,7 +290,7 @@ void Spank::setTemplate(int type)
 			break;
 		
 		case TEMPLATE_VALA:
-			LOG("Using template: vala", LOG_INFO);
+			LOG("Using template: vala", LOG_VERBOSE);
 			PROJECT->setValue("compiler", "valac");
 			PROJECT->setValue("sources", "*.vala");
 			PROJECT->setValue("template", "vala");
@@ -300,7 +300,7 @@ void Spank::setTemplate(int type)
 			break;
 
 		case TEMPLATE_CS:
-			LOG("Using template: c#", LOG_INFO);
+			LOG("Using template: c#", LOG_VERBOSE);
 			PROJECT->setValue("compiler", "gmcs");
 			PROJECT->setValue("sources", "*.cs");
 			PROJECT->setValue("template", "cs");
@@ -311,7 +311,7 @@ void Spank::setTemplate(int type)
 
 		case TEMPLATE_C:
 		case TEMPLATE_C99:
-			LOG("Using template: c", LOG_INFO);
+			LOG("Using template: c", LOG_VERBOSE);
 			PROJECT->setValue("template", "c");
 			PROJECT->setValue("cflags", "Wall");
 			PROJECT->addValue("cflags", "g");
@@ -320,7 +320,7 @@ void Spank::setTemplate(int type)
 			break;
 		
 		case TEMPLATE_GCC_AUTO:
-			LOG("Using template: gcc-auto (default)", LOG_INFO);
+			LOG("Using template: gcc-auto (default)", LOG_VERBOSE);
 			// note: no break
 		default:
 			PROJECT->setValue("template", "gcc-auto");
@@ -412,7 +412,7 @@ void Spank::printBanner(int banner)
 
 void Spank::handleArgs(int argc, const char* const* argv){
 
-	setTemplate(TEMPLATE_GCC_AUTO);
+	setTemplate(TEMPLATE_DEFAULT);
 
 	if(!PROJECT->fromCmdLine(argc, argv)){
 		printBanner(BANNER_LOGO);
