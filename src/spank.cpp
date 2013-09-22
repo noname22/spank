@@ -320,8 +320,9 @@ void Spank::setTemplate(int type)
 			break;
 		
 		case TEMPLATE_GCC_AUTO:
-		default:
 			LOG("Using template: gcc-auto (default)", LOG_INFO);
+			// note: no break
+		default:
 			PROJECT->setValue("template", "gcc-auto");
 
 			PROJECT->setValue("cflags", "Wall");
