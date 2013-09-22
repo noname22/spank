@@ -64,7 +64,7 @@ std::vector<CList> CompilerGcc::compileList(bool rcCheck)
 			
 			std::stringstream call;
 
-			call << PROJECT->getValueStr("compiler", 0) << " -c " << *it << " " << genCFlags();
+			call << PROJECT->getValueStr("compiler", 0) << " " << genCFlags(*it) << " -c " << *it << " ";
 
 			if(PROJECT->getValueStr("targettype") == "lib-shared")
 				call << PROJECT->getValueStr("fpic") << " ";
@@ -88,18 +88,26 @@ std::vector<CList> CompilerGcc::compileList(bool rcCheck)
 	return cList;	
 }
 
-void CompilerGcc::setIncludePaths()
+void CompilerGcc::setIncludePaths(std::string filename)
 {
-	if(incPaths[Bracket].size()){ return; }
+	static std::string lastLang = "";
+	std::string language = guessLanguage(filename);
 
-	std::string dashx = "";
+	// re-scan include paths if there's a new language type
+	// since c/c++ have different built in include paths
 
-	// TODO hackish
-	if(PROJECT->getValueStr("compiler").find("++") != std::string::npos){
-		dashx = "-x c++";
+	if(lastLang != language){
+		incPaths[0].clear();
+		incPaths[1].clear();
+		lastLang = language;
 	}
 
-	FORMSTR(cmd, "echo | " << PROJECT->getValueStr("pp") << " " << genCFlags() << dashx << " - -v");
+	if(incPaths[Bracket].size())
+		return;
+
+	std::string dashx = guessLanguage(filename) == "c++" ? " -x c++" : "";
+
+	FORMSTR(cmd, "echo | " << PROJECT->getValueStr("pp") << " " << genCFlags(filename) << dashx << " - -v");
 	std::string out;
 
 	Tools::execute(cmd, 0, &out);
@@ -188,7 +196,7 @@ bool CompilerGcc::checkRecompileRecursive(std::vector<std::string> stack, std::s
 		return false;
 	}
 
-	setIncludePaths();
+	setIncludePaths(src);
 
 	std::fstream f(src.c_str());
 
@@ -298,7 +306,9 @@ bool CompilerGcc::checkRecompile(std::string src, std::string obj)
 	// wrapper from files-function depending on method
 	// Rename it? To what?
 
-	if(PROJECT->getValueStr("rccheck", 0) == "recursive"){
+	std::string language = guessLanguage(src);
+
+	if(PROJECT->getValueStr("rccheck") == "recursive" && (language == "c++" || language == "c")){
 		std::vector<std::string> stack;
 		return checkRecompileRecursive(stack, src, obj);
 	}
@@ -501,61 +511,99 @@ bool CompilerGcc::localCompile()
 	return compileFileByFile();
 }
 
-std::string CompilerGcc::genCFlags(bool includeLibs)
+std::string CompilerGcc::guessLanguage(std::string filename)
 {
-	std::string flags;
+	if(PROJECT->getValueStr("language") != "none")
+		return PROJECT->getValueStr("language");
+
+	// TODO guess more languages than c and c++ (if it's ever needed)
+	std::string lowername = Tools::toLower(filename);
+
+	if(Tools::endsWith(lowername, ".cpp") || Tools::endsWith(lowername, ".cxx") || Tools::endsWith(lowername, ".cc"))
+		return "c++";
+
+	if(Tools::endsWith(lowername, ".c"))
+		return "c";
 	
-	if(PROJECT->getValueBool("addhyphen")){
-		flags = PROJECT->getValueStr("cflags", "-", " -", " ");
-	}else{
-		flags = PROJECT->getValueStr("cflags", " ", " ", " ");
-	}
+	return "none";
+}
 
-	ADDSTR(flags, PROJECT->getValueStr("_dep_cflags", " ", " ", " "));
+std::string CompilerGcc::genCFlags(std::string filename, bool includeLibs, std::string language)
+{
+	if(language == "")
+		language = PROJECT->getValueStr("language");
 
-	if(PROJECT->getValueBool("spankdefs")){
+	std::string hyphen = PROJECT->getValueBool("addhyphen") ? "-" : "";
+	std::stringstream flags;
+	
+	for(int i = 0; i < PROJECT->getNumValues("cflags"); i++){
+		std::string flag = PROJECT->getValueStr("cflags", i);
 
-		std::string compiler = PROJECT->getValueStr("compiler");
+		// .c/std=c99 <- only if extension is .c
+		std::string ext = Tools::restOfString(flag, ".");
+		if(ext != ""){
+			unsigned pos = ext.find("/");
+			LASSERT(pos != std::string::npos, "per extension cflag expects syntax .[ext]/[flag], but no slash found");
 
-		if(PROJECT->getValueStr("compilertype") == "gcc"){ // TODO: less ghetto compiler detection
-			flags.append("-DSPANK_COMPILER_GCC ");
-			// the only supported enviroment as of yet
-			flags.append("-DSPANK_ENV_UNIX ");
+			//LOG("only with extensions: " << ext.substr(0, pos), LOG_DEBUG);
 
-
-			flags.append("-DSPANK_ENV_UNIX ");
-			ADDSTR(flags, "-D'SPANK_TARGET_PLATFORM=\"" << PROJECT->getValueStr("target_platform") << "\"' ");
-			ADDSTR(flags, "-DSPANK_TARGET_PLATFORM_" << Tools::toUpper(PROJECT->getValueStr("target_platform")) << " ");
-
-			ADDSTR(flags, "-D'SPANK_NAME=\"" << PROJECT->getValueStr("name") << "\"' ");
-			ADDSTR(flags, "-D'SPANK_BINNAME=\"" << PROJECT->getValueStr("target") << "\"' ");
-			ADDSTR(flags, "-D'SPANK_VERSION=\"" << PROJECT->getValueStr("version") << "\"' ");
-			ADDSTR(flags, "-D'SPANK_HOMEPAGE=\"" << PROJECT->getValueStr("homepage", " - ") << "\"' ");
-			ADDSTR(flags, "-D'SPANK_AUTHOR=\"" << PROJECT->getValueStr("author", ", ") << "\"' ");
-			ADDSTR(flags, "-D'SPANK_EMAIL=\"" << PROJECT->getValueStr("email", " - ") << "\"' ");
-			ADDSTR(flags, "-D'SPANK_PREFIX=\"" << PROJECT->getValueStr("inst_prefix") << "\"' ");
-
+			if(Tools::endsWith(filename, ext.substr(0, pos))){
+				flags << hyphen << ext.substr(pos + 1) << " ";
+				//LOG("sflag: " << ext.substr(pos + 1), LOG_DEBUG);	
+			}
+		}else{
+			flags << flag << " ";
+			//LOG("flag: " << flag, LOG_DEBUG);	
 		}
 	}
 
+	flags << PROJECT->getValueStr("_dep_cflags", " ", " ", " ");
+
+	if(PROJECT->getValueBool("spankdefs") || PROJECT->getValueStr("spankdefs") == "extra"){
+		flags << "-D'SPANK_NAME=\"" << PROJECT->getValueStr("name") << "\"' ";
+	}
+
+	if(PROJECT->getValueStr("spankdefs") == "extra"){
+		std::string compiler = PROJECT->getValueStr("compiler");
+
+		flags << "-D'SPANK_TARGET_PLATFORM=\"" << PROJECT->getValueStr("target_platform") << "\"' ";
+		flags << "-DSPANK_TARGET_PLATFORM_" << Tools::toUpper(PROJECT->getValueStr("target_platform")) << " ";
+
+		flags << "-DSPANK_COMPILER_GCC ";
+		flags << "-DSPANK_ENV_UNIX ";
+
+		flags << "-D'SPANK_BINNAME=\"" << PROJECT->getValueStr("target") << "\"' ";
+		flags << "-D'SPANK_VERSION=\"" << PROJECT->getValueStr("version") << "\"' ";
+		flags << "-D'SPANK_HOMEPAGE=\"" << PROJECT->getValueStr("homepage", " - ") << "\"' ";
+		flags << "-D'SPANK_AUTHOR=\"" << PROJECT->getValueStr("author", ", ") << "\"' ";
+		flags << "-D'SPANK_EMAIL=\"" << PROJECT->getValueStr("email", " - ") << "\"' ";
+		flags << "-D'SPANK_PREFIX=\"" << PROJECT->getValueStr("inst_prefix") << "\"' ";
+	}
+
+	flags << "-x " << language << " ";
+
 	if(PROJECT->getNumValues("lib")){
-		flags.append(" `");
-		flags.append(PROJECT->getValueStr("pkg-config"));
-		flags.append(PROJECT->getValueStr("lib", includeLibs ? " --cflags --libs " : " --cflags ", " ", "`"));
+		flags << " `" << PROJECT->getValueStr("pkg-config") <<
+			PROJECT->getValueStr("lib", includeLibs ? " --cflags --libs " : " --cflags ", " ", "`");
 	}
 	
 	if(PROJECT->getNumValues("lib-static")){
-		flags.append(" `");
-		flags.append(PROJECT->getValueStr("pkg-config"));
-		flags.append(PROJECT->getValueStr("lib-static", includeLibs ? " --static --cflags --libs " : " --static --cflags ", " ", "`"));
+		flags << " `" << PROJECT->getValueStr("pkg-config") << 
+			PROJECT->getValueStr("lib-static", includeLibs ? " --static --cflags --libs " : " --static --cflags ", " ", "`");
 	}
 
-	return flags;
+	return flags.str();
 }
 
 bool CompilerGcc::compileAmalgamate()
 {
-	LOG("Compiling with single call...", LOG_VERBOSE);
+	LOG("Amalgamating and compiling sources...", LOG_VERBOSE);
+
+	std::string compiler = PROJECT->getValueStr("compiler");
+	std::string language = PROJECT->getValueStr("language");
+
+	LASSERT(language != "none", "Amalgamate doesn't work with language auto detection, must specify c or c++ explicitly");
+	LASSERT(language == "c++" || language == "c", "Amalgamating compilation only works with c and c++");
 
 	std::set<std::string> list = getSourceList();
 	
@@ -571,18 +619,13 @@ bool CompilerGcc::compileAmalgamate()
 
 	std::stringstream vfile;
 
-	for(std::set<std::string>::iterator it = list.begin(); it != list.end(); it++)
+	std::set<std::string>::iterator it = list.begin();
+	for(it = list.begin(); it != list.end(); it++)
 		vfile << "#include \\\"" << *it << "\\\"\\n";
 
 	LOG(vfile.str(), LOG_DEBUG);
-
-	std::string compiler = PROJECT->getValueStr("compiler");
-
-	// TODO HACK this should be detected properly
-	std::string dashx = Tools::endsWith(compiler, "++") ? " -xc++ " : " -xc ";
-	
 	std::stringstream call;	
-	call << "`which echo` -e \"\\n" << vfile.str() << "\" | " << compiler << dashx << " -c " << " - " << genCFlags();
+	call << "`which echo` -e \"\\n" << vfile.str() << "\" | " << compiler << " " << genCFlags(*(--it)) << " -c " << " - ";
 
 	if(PROJECT->getValueStr("targettype") == "lib-shared")
 		call << PROJECT->getValueStr("fpic") << " ";
@@ -594,6 +637,8 @@ bool CompilerGcc::compileAmalgamate()
 
 bool CompilerGcc::compileSingleCall()
 {
+	LOG("Compiling and linking in single call...", LOG_VERBOSE);
+
 	std::ifstream listFile(FILES->combinePath(Tools::makeStrVector(FILES->getTmpDir(), "filelist")).c_str());
 	std::set<std::string> list;
 
@@ -613,10 +658,13 @@ bool CompilerGcc::compileSingleCall()
 	std::stringstream call;
 	call << PROJECT->getValueStr("compiler", 0) << " ";
 
-	for(std::set<std::string>::iterator it = list.begin(); it != list.end(); it++)
+	std::set<std::string>::iterator it;
+	for(it = list.begin(); it != list.end(); it++)
 		call  << *it << " ";
 
-	call << genCFlags(true) << " " << ldFlags << " "; 
+	// TODO generates cflags from last file, could theoretically support any number of file types etc.
+	// multiple -std=, -x
+	call << genCFlags(*(--it), true) << " " << ldFlags << " "; 
 
 	if(PROJECT->getValueStr("targettype") == "lib-shared"){
 		call << PROJECT->getValueStr("fpic") << " ";
@@ -663,7 +711,6 @@ bool CompilerGcc::compileFileByFile()
 		}
 	
 		Tools::forkDo(cList.at(i).call.c_str(), pidList, i);
-		//Tools::forkDo("../returner/returner 2" ,pidList, i);
 		handle = Tools::wait(pidList, numJobs);	
 
 		if(!handle.noResult && handle.error){
@@ -672,12 +719,6 @@ bool CompilerGcc::compileFileByFile()
 			ret = false;
 			break;
 		}
-
-		/*if(system(cList.at(i).call.c_str())){
-			LOG("Compilation failed, removing associated files", LOG_DEBUG);
-			markRecompile(cList.at(i).src, cList.at(i).obj);
-			return false;
-		}*/
 	}
 
 	while(!handle.done){

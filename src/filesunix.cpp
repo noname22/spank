@@ -18,6 +18,7 @@
 #include <limits.h>
 
 #include <fstream>
+#include <sstream>
 #include <cstdlib>
 #include <cstring>
 
@@ -84,14 +85,6 @@ bool FilesUnix::createDir(std::string dir)
 	return true;
 }
 
-void FilesUnix::markRecompilePp(std::string src)
-{
-	std::string tmp = getTmpDir();
-	tmp.append("/");
-	tmp.append(Tools::nameEnc(".pp.md5", src));
-	erase(tmp);
-}
-
 bool FilesUnix::removeDir(std::string dir)
 {
 	FORMSTR(cmd, "rm -rf \"" << dir << "\"");
@@ -111,19 +104,12 @@ void FilesUnix::wait()
 
 bool FilesUnix::find(std::string what, std::string where, std::string result)
 {
-	std::string findThis("find ");
-	findThis.append(where);
-	findThis.append(" -iname \"");
-	findThis.append(what); 
-	findThis.append("\" >> ");
-	findThis.append(result);
+	std::stringstream call;
+	call << PROJECT->getValueStr("find") << " " << where << " -iname \"" << 
+		what << "\" >> " << result;
 
-	LOG(findThis, LOG_EXTRA_VERBOSE);
-
-	if(system(findThis.c_str()) == 0){
-		return true;
-	}
-	return false;
+	LOG(call.str(), LOG_EXTRA_VERBOSE);
+	return system(call.str().c_str()) == 0;
 }
 
 

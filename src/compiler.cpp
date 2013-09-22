@@ -41,9 +41,10 @@ bool Compiler::link()
 	return Tools::executeAll("postbuildscript");
 }
 
-std::string Compiler::genCFlags(bool includeLibs)
+std::string Compiler::genCFlags(std::string filename, bool includeLibs, std::string language)
 {
-	return "";
+	std::string hyphen = PROJECT->getValueBool("addhyphen") ? " -" : " ";
+	return PROJECT->getValueStr("cflags", hyphen, hyphen, " ");
 }
 
 bool Compiler::buildDeps()

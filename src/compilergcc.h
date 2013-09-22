@@ -26,7 +26,8 @@ class CompilerGcc: public Compiler
 	std::set<std::string> getSourceList();
 	std::vector<CList> compileList(bool rcCheck = true);
 	std::string getLdCall(bool rlCheck);
-	std::string genCFlags(bool includeLibs = false);
+	std::string genCFlags(std::string filename, bool includeLibs = false, std::string language = "");
+	std::string parseCFlags(std::string valName);
 
 	private:
 	bool compileFileByFile();
@@ -38,12 +39,14 @@ class CompilerGcc: public Compiler
 	void markRecompile(std::string src, std::string obj);
 	bool checkLibs();
 	bool pkgCall(std::string switches);
+
+	std::string guessLanguage(std::string filename);
 	
 	std::string pkgGetFlags(std::string lib, bool cflags); // TODO remove this
 
 	std::string getPercent(int current, int of);
 
-	void setIncludePaths();
+	void setIncludePaths(std::string filename);
 	std::string lookUpIncludeFile(std::string src, std::string filename, bool quoted);
 
 	bool hasPkgConfig;

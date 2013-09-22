@@ -1,3 +1,4 @@
+template        c
 target_name	test
 sourcedir	src
 cflags		Iinclude

@@ -26,7 +26,7 @@ class Compiler
 	bool link();
 	bool clean();
 
-	virtual std::string genCFlags(bool includeLibs = false);
+	virtual std::string genCFlags(std::string filename, bool includeLibs = false, std::string language = "");
 
 	virtual bool localCompile() = 0;
 	virtual bool localLink() = 0;

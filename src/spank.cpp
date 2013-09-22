@@ -163,6 +163,7 @@ void Spank::setTemplate(int type)
 		PROJECT->setValue("lib", "");
 		PROJECT->setValue("lib-static", "");
 		PROJECT->setValue("pkg-config", "PKG_CONFIG_PATH=$PKG_CONFIG_PATH:.:spank:$(prefix)/lib/pkgconfig pkg-config");
+		PROJECT->setValue("find", "find");
 		PROJECT->setValue("spank", "");
 		PROJECT->setValue("tar", "tar");
 		PROJECT->setValue("ar", "ar");
@@ -173,6 +174,8 @@ void Spank::setTemplate(int type)
 		PROJECT->setValue("fpic", "-fPIC");
 		PROJECT->setValue("projectpath", FILES->realpath("."));
 		PROJECT->setValue("compilation-strategy", "file-by-file");
+
+		// Inter-project dependencies
 		PROJECT->setValue("depends", "");
 		PROJECT->setValue("depaction", "build");
 		
@@ -260,6 +263,8 @@ void Spank::setTemplate(int type)
 			PROJECT->setValue("template", "c++");
 			PROJECT->setValue("compilertype", "gcc");
 			PROJECT->setValue("cflags", "Wall");
+			PROJECT->addValue("cflags", "g");
+			PROJECT->setValue("language", "c++");
 			if(type == TEMPLATE_CPP11) PROJECT->addValue("cflags", "std=c++0x");
 			break;
 		
@@ -270,6 +275,7 @@ void Spank::setTemplate(int type)
 			PROJECT->setValue("template", "vala");
 			PROJECT->setValue("rccheck", "simple");
 			PROJECT->setValue("compilertype", "vala");
+			PROJECT->setValue("language", "vala");
 			break;
 
 		case TEMPLATE_CS:
@@ -279,6 +285,7 @@ void Spank::setTemplate(int type)
 			PROJECT->setValue("template", "cs");
 			PROJECT->setValue("rccheck", "simple");
 			PROJECT->setValue("compilertype", "mcs");
+			PROJECT->setValue("language", "cs");
 			break;
 
 		case TEMPLATE_C:
@@ -286,13 +293,41 @@ void Spank::setTemplate(int type)
 			LOG("Using template: c", LOG_INFO);
 			PROJECT->setValue("template", "c");
 			PROJECT->setValue("cflags", "Wall");
+			PROJECT->addValue("cflags", "g");
+			PROJECT->setValue("language", "c");
 			if(type == TEMPLATE_C99) PROJECT->addValue("cflags", "std=c99");
-			// note: no break
+			break;
 		
+		case TEMPLATE_GCC_AUTO:
 		default:
+			LOG("Using template: gcc-auto (default)", LOG_INFO);
+			PROJECT->setValue("template", "gcc-auto");
+
+			PROJECT->setValue("cflags", "Wall");
+			PROJECT->addValue("cflags", "g");
+			PROJECT->addValue("cflags", ".c/std=c99");
+			PROJECT->addValue("cflags", ".cpp/std=c++0x");
+			PROJECT->addValue("cflags", ".cc/std=c++0x");
+			PROJECT->addValue("cflags", ".cxx/std=c++0x");
+
 			PROJECT->setValue("compilertype", "gcc");
 			PROJECT->setValue("compiler", "$(host_dash)gcc");
-			PROJECT->setValue("sources", "*.c");
+			
+			PROJECT->setValue("language", "none");  // gcc detects by extension
+
+			PROJECT->setValue("sources", "*.c");    // c
+			PROJECT->addValue("sources", "*.cpp");  // c++
+			PROJECT->addValue("sources", "*.cxx"); 
+			PROJECT->addValue("sources", "*.cc"); 
+			PROJECT->addValue("sources", "*.m");    // objective-c
+			PROJECT->addValue("sources", "*.mm");   // objective-c++
+			PROJECT->addValue("sources", "*.f");    // fortran
+			PROJECT->addValue("sources", "*.f90");  // fortran 90
+			PROJECT->addValue("sources", "*.java"); // gjc/java
+			PROJECT->addValue("sources", "*.go");   // gccgo/go
+			PROJECT->addValue("sources", "*.pas");  // pascal
+			//PROJECT->addValue("sources", "*.d");  // gdc/d   -x none can't detect d for some reason
+		
 			break;
 	}
 
@@ -353,7 +388,7 @@ void Spank::printBanner(int banner)
 
 void Spank::handleArgs(int argc, const char* const* argv){
 
-	setTemplate(TEMPLATE_DEFAULT);
+	setTemplate(TEMPLATE_GCC_AUTO);
 
 	if(!PROJECT->fromCmdLine(argc, argv)){
 		printBanner(BANNER_LOGO);
@@ -393,7 +428,7 @@ void Spank::handleArgs(int argc, const char* const* argv){
 		}else if(tmpl == "vala"){
 			setTemplate(TEMPLATE_VALA);
 		}else{
-			setTemplate(TEMPLATE_DEFAULT);
+			setTemplate(TEMPLATE_GCC_AUTO);
 		}
 
 		// Set the target prefix and suffix depnding on target type	
