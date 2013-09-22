@@ -65,7 +65,12 @@ bool Compiler::buildDeps()
 
 		std::string err;
 		FORMSTR(cmd, PROJECT->getValueStr("spank") << " -verbosity 3 -dep_printinfo yes " << PROJECT->getValueStr("depaction"));
-		LASSERT(Tools::execute(cmd, 0, &err, false) == 0, "failed to build external project: " << dep);
+		if(Tools::execute(cmd, 0, &err, false) != 0){
+			std::cerr << err;
+			LOG("failed to build external project: " << dep, LOG_FATAL);
+			exit(1);
+		}
+
 		LOG("err: " << err, LOG_DEBUG);
 	
 		StrVec lines = Tools::splitString(err, '\n');

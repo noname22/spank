@@ -134,10 +134,16 @@ bool Spank::postBuild()
 		prefix.append(sep);
 
 		std::cerr << "cflags: " << PROJECT->getValueStr("dep_cflags", prefix, sep, " ") << 
-			PROJECT->getValueStr("dep_extra_cflags", prefix, sep, " ") << std::endl;
+			PROJECT->getValueStr("dep_extra_cflags", prefix, sep, " ") <<
+			" `" << PROJECT->getValueStr("pkg-config") <<
+			PROJECT->getValueStr("lib", " --cflags ", " ", "`") <<
+			std::endl;
 
 		std::cerr << "ldflags: " << PROJECT->getValueStr("dep_ldflags", prefix, sep, " ") << 
-			PROJECT->getValueStr("dep_extra_ldflags", prefix, sep, " ") << std::endl;
+			PROJECT->getValueStr("dep_extra_ldflags", prefix, sep, " ") << 
+			" `" << PROJECT->getValueStr("pkg-config") <<
+			PROJECT->getValueStr("lib", " --libs ", " ", "`") <<
+			std::endl;
 	}
 
 	return true;
