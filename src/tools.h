@@ -20,8 +20,12 @@
 #include <string>
 #include <sstream>		
 #include <vector>
+#include <set>
+#include <map>
 
 typedef std::vector<std::string> StrVec;
+typedef std::set<std::string> StrSet;
+typedef std::map<std::string, std::string> StrStrMap;
 
 class ForkResult
 {

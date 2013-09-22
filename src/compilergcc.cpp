@@ -9,13 +9,12 @@
 
 #include "compilergcc.h"
 
-#include <string>
 #include <fstream>
 #include <sstream>
 #include <algorithm>
 #include <cstring>
 #include <stdexcept>
-#include <set>
+#include <map>
 
 #include "system.h"
 #include "settings.h"
@@ -28,10 +27,10 @@ CompilerGcc::CompilerGcc()
 }
 
 // Makes a list of all source files in the project.
-std::set<std::string> CompilerGcc::getSourceList()
+StrSet CompilerGcc::getSourceList()
 {
 	std::ifstream listFile(FILES->combinePath(Tools::makeStrVector(FILES->getTmpDir(), "filelist")).c_str());
-	std::set<std::string> list;
+	StrSet list;
 
 	while(listFile.good()){
 		std::string line;
@@ -51,11 +50,11 @@ std::set<std::string> CompilerGcc::getSourceList()
 // If rcCheck is true it only returns the files that need recompilation
 std::vector<CList> CompilerGcc::compileList(bool rcCheck)
 {
+	StrSet list = sources; // TODO HACK see note in localCompile
 	std::vector<CList> cList;
 	std::ofstream objectList(FILES->combinePath(Tools::makeStrVector(FILES->getTmpDir(), "objectlist")).c_str());
-	std::set<std::string> list = getSourceList();
 
-	for(std::set<std::string>::iterator it = list.begin(); it != list.end(); it++){
+	for(StrSet::iterator it = list.begin(); it != list.end(); it++){
 		std::string obj = FILES->combinePath(Tools::makeStrVector(FILES->getTmpDir(), Tools::nameEnc(".o", *it)));
 		objectList << obj << std::endl;
 
@@ -144,7 +143,7 @@ void CompilerGcc::setIncludePaths(std::string filename)
 
 	LOG("Found include paths: ", LOG_DEBUG);
 	for(i = 0; i < 2; i++){
-		for(std::vector<std::string>::iterator it = incPaths[i].begin(); it != incPaths[i].end(); it++){
+		for(StrVec::iterator it = incPaths[i].begin(); it != incPaths[i].end(); it++){
 			LOG((*it), LOG_DEBUG);
 		}
 	}
@@ -154,7 +153,7 @@ std::string CompilerGcc::lookUpIncludeFile(std::string src, std::string filename
 {
 	IncPathType order[2] = {Bracket, Quoted};
 
-	std::vector<std::string> incPaths[2] = this->incPaths;
+	StrVec incPaths[2] = this->incPaths;
 	//LOG(src << " -> " << FILES->dirName(src), LOG_DEBUG);
 	incPaths[Quoted].insert(incPaths[0].begin(), FILES->dirName(src)); 	
 
@@ -163,7 +162,7 @@ std::string CompilerGcc::lookUpIncludeFile(std::string src, std::string filename
 	}
 
 	for(int i = 0; i < 2; i++){
-		for(std::vector<std::string>::iterator it = incPaths[order[i]].begin(); it != incPaths[order[i]].end(); it++){
+		for(StrVec::iterator it = incPaths[order[i]].begin(); it != incPaths[order[i]].end(); it++){
 			FORMSTR(test, (*it) << "/" << filename);
 			LOG("Trying: " << test, LOG_DEBUG);
 			if(FILES->fileExists(test)){
@@ -180,7 +179,7 @@ std::string CompilerGcc::lookUpIncludeFile(std::string src, std::string filename
 // TODO line breaks in C++ style comments, '\'
 // TODO trigraph line breaks, although they could probably be safely ignored
 
-bool CompilerGcc::checkRecompileRecursive(std::vector<std::string> stack, std::string src, std::string obj, int depth)
+bool CompilerGcc::checkRecompileRecursive(StrVec stack, std::string src, std::string obj, int depth)
 {
 	stack.push_back(src);
 
@@ -275,7 +274,7 @@ bool CompilerGcc::checkRecompileRecursive(std::vector<std::string> stack, std::s
 			// Check for circluar includes
 			// TODO windows implications with case insensitivity
 			try {
-				for(std::vector<std::string>::iterator it = stack.begin(); it != stack.end(); it++){
+				for(StrVec::iterator it = stack.begin(); it != stack.end(); it++){
 					if(filename == (*it)){
 						throw std::runtime_error("circular");
 					}
@@ -287,7 +286,7 @@ bool CompilerGcc::checkRecompileRecursive(std::vector<std::string> stack, std::s
 			} catch (std::runtime_error) {
 				LOG("The file " << filename << " is includes itself (directly or indirectly).", LOG_EXTRA_VERBOSE);
 				LOG("current include stack: ", LOG_EXTRA_VERBOSE);
-				for(std::vector<std::string>::iterator it = stack.begin(); it != stack.end(); it++){
+				for(StrVec::iterator it = stack.begin(); it != stack.end(); it++){
 					LOG(*it, LOG_EXTRA_VERBOSE);
 				}
 				LOG("then trying to include: " << filename, LOG_EXTRA_VERBOSE);
@@ -309,7 +308,7 @@ bool CompilerGcc::checkRecompile(std::string src, std::string obj)
 	std::string language = guessLanguage(src);
 
 	if(PROJECT->getValueStr("rccheck") == "recursive" && (language == "c++" || language == "c")){
-		std::vector<std::string> stack;
+		StrVec stack;
 		return checkRecompileRecursive(stack, src, obj);
 	}
 
@@ -319,6 +318,32 @@ bool CompilerGcc::checkRecompile(std::string src, std::string obj)
 void CompilerGcc::markRecompile(std::string src, std::string obj)
 {
 	FILES->erase(obj);
+}
+
+StrSet CompilerGcc::getStdLibs(StrSet sources)
+{
+	// Add any standard libraries required by different languages when linking
+	StrSet ret;
+	std::string stdlibOpt = PROJECT->getValueStr("stdlibs");
+	if(stdlibOpt != "shared" && stdlibOpt != "dynamic")
+		return ret;
+
+
+	std::map<std::string, std::vector<std::string> > stdLibs;
+
+	// lang -> static lib, dynamic lib
+	stdLibs["c++"] = Tools::makeStrVector("-lstdc++", "-static-libstdc++ -lstdc++");
+	stdLibs["go"] = Tools::makeStrVector("-lgobegin -lgo", "-static-libgo");
+
+	for(StrSet::iterator it = sources.begin(); it != sources.end(); it++){
+		std::string lang = guessLanguage(*it);
+
+		if(stdLibs.count(lang)){
+			ret.insert(stdLibs[lang][stdlibOpt == "static" ? 1 : 0]);
+		}
+	}
+
+	return ret;
 }
 
 std::string CompilerGcc::getLdCall(bool rlCheck)
@@ -375,6 +400,15 @@ std::string CompilerGcc::getLdCall(bool rlCheck)
 		call << "`" << PROJECT->getValueStr("pkg-config") << PROJECT->getValueStr("lib-static", " --static --libs ", " ", "` ");
 
 	call << PROJECT->getValueStr("_dep_ldflags", " ", " ", " ", true); 
+	
+	if(targettype == "binary"){
+		// TODO refacture so that getLdCall could get passed a list of the source files rather than reading them again from the list
+		StrSet sources = getSourceList();
+		StrSet stdlibs = getStdLibs(sources);
+
+		for(StrSet::iterator it = stdlibs.begin(); it != stdlibs.end(); it++)
+			call << " " << *it;
+	}
 
 	LOG("ldcall: " << call.str(), LOG_DEBUG);
 		
@@ -501,14 +535,21 @@ std::string CompilerGcc::getPercent(int current, int of)
 
 bool CompilerGcc::localCompile()
 {
+	LOG("Checking dependencies...", LOG_VERBOSE);
+	if(!checkLibs())
+		return false;
+
+	LOG("Preparing...", LOG_VERBOSE);
+	StrSet sources = getSourceList();
+
 	std::string strategy = PROJECT->getValueStr("compilation-strategy");
 
 	if(strategy == "single-call")
-		return compileSingleCall();
+		return compileSingleCall(sources);
 	else if (strategy == "amalgamate")
-		return compileAmalgamate();
+		return compileAmalgamate(sources);
 
-	return compileFileByFile();
+	return compileFileByFile(sources);
 }
 
 std::string CompilerGcc::guessLanguage(std::string filename)
@@ -516,14 +557,27 @@ std::string CompilerGcc::guessLanguage(std::string filename)
 	if(PROJECT->getValueStr("language") != "none")
 		return PROJECT->getValueStr("language");
 
-	// TODO guess more languages than c and c++ (if it's ever needed)
+	// wow, C++11 would be nice here
+	std::vector< std::vector<std::string> > langs;
+	langs.push_back(Tools::makeStrVector(".c", "c"));
+	langs.push_back(Tools::makeStrVector(".cpp", "c++"));
+	langs.push_back(Tools::makeStrVector(".cxx", "c++"));
+	langs.push_back(Tools::makeStrVector(".cc", "c++"));
+	langs.push_back(Tools::makeStrVector(".d", "d"));
+	langs.push_back(Tools::makeStrVector(".m", "obj-c"));
+	langs.push_back(Tools::makeStrVector(".mm", "obj-c++"));
+	langs.push_back(Tools::makeStrVector(".f", "fortran"));
+	langs.push_back(Tools::makeStrVector(".f90", "fortran"));
+	langs.push_back(Tools::makeStrVector(".java", "java"));
+	langs.push_back(Tools::makeStrVector(".go", "go"));
+	langs.push_back(Tools::makeStrVector(".pas", "pascal"));
+
 	std::string lowername = Tools::toLower(filename);
 
-	if(Tools::endsWith(lowername, ".cpp") || Tools::endsWith(lowername, ".cxx") || Tools::endsWith(lowername, ".cc"))
-		return "c++";
-
-	if(Tools::endsWith(lowername, ".c"))
-		return "c";
+	for(std::vector< std::vector<std::string> >::iterator it = langs.begin(); it != langs.end(); it++){
+		if(Tools::endsWith(lowername, (*it)[0]))
+			return (*it)[1];
+	}
 	
 	return "none";
 }
@@ -595,7 +649,7 @@ std::string CompilerGcc::genCFlags(std::string filename, bool includeLibs, std::
 	return flags.str();
 }
 
-bool CompilerGcc::compileAmalgamate()
+bool CompilerGcc::compileAmalgamate(StrSet list)
 {
 	LOG("Amalgamating and compiling sources...", LOG_VERBOSE);
 
@@ -604,8 +658,6 @@ bool CompilerGcc::compileAmalgamate()
 
 	LASSERT(language != "none", "Amalgamate doesn't work with language auto detection, must specify c or c++ explicitly");
 	LASSERT(language == "c++" || language == "c", "Amalgamating compilation only works with c and c++");
-
-	std::set<std::string> list = getSourceList();
 	
 	// TODO HACK
 	if(list.size() == 0){
@@ -619,7 +671,7 @@ bool CompilerGcc::compileAmalgamate()
 
 	std::stringstream vfile;
 
-	std::set<std::string>::iterator it = list.begin();
+	StrSet::iterator it = list.begin();
 	for(it = list.begin(); it != list.end(); it++)
 		vfile << "#include \\\"" << *it << "\\\"\\n";
 
@@ -635,22 +687,9 @@ bool CompilerGcc::compileAmalgamate()
 	return Tools::execute(call.str(), 0, 0, false) == 0;
 }
 
-bool CompilerGcc::compileSingleCall()
+bool CompilerGcc::compileSingleCall(StrSet list)
 {
 	LOG("Compiling and linking in single call...", LOG_VERBOSE);
-
-	std::ifstream listFile(FILES->combinePath(Tools::makeStrVector(FILES->getTmpDir(), "filelist")).c_str());
-	std::set<std::string> list;
-
-	while(listFile.good()){
-		std::string line;
-		getline(listFile, line);
-
-		if(line != "")
-			list.insert(line);
-	}
-
-	listFile.close();
 
 	std::string hyphen = PROJECT->getValueBool("addhyphen") ? " -" : " ";
 	std::string ldFlags = PROJECT->getValueStr("ldflags", hyphen, hyphen, " ");
@@ -658,7 +697,7 @@ bool CompilerGcc::compileSingleCall()
 	std::stringstream call;
 	call << PROJECT->getValueStr("compiler", 0) << " ";
 
-	std::set<std::string>::iterator it;
+	StrSet::iterator it;
 	for(it = list.begin(); it != list.end(); it++)
 		call  << *it << " ";
 
@@ -675,14 +714,11 @@ bool CompilerGcc::compileSingleCall()
 	return Tools::execute(call.str(), 0, 0, false) == 0;
 }
 
-bool CompilerGcc::compileFileByFile()
+bool CompilerGcc::compileFileByFile(StrSet list)
 {
-	LOG("Checking dependencies...", LOG_VERBOSE);
-	if(!checkLibs()){
-		return false;
-	}
-
-	LOG("Preparing...", LOG_VERBOSE);
+	// TODO HACK don't pass the sources argument by member,
+	// (requires refactoring of compiler interface)
+	sources = list;
 	std::vector<CList> cList = compileList();
 
 	if(cList.size() > 0){

@@ -174,6 +174,10 @@ void Spank::setTemplate(int type)
 		PROJECT->setValue("fpic", "-fPIC");
 		PROJECT->setValue("projectpath", FILES->realpath("."));
 		PROJECT->setValue("compilation-strategy", "file-by-file");
+		PROJECT->setValue("stdlibs", "no");
+
+		// set to eg. g++ depending on language
+		PROJECT->setValue("compiler-from-language", "gcc"); 
 
 		// Inter-project dependencies
 		PROJECT->setValue("depends", "");
@@ -327,6 +331,8 @@ void Spank::setTemplate(int type)
 			PROJECT->addValue("sources", "*.go");   // gccgo/go
 			PROJECT->addValue("sources", "*.pas");  // pascal
 			//PROJECT->addValue("sources", "*.d");  // gdc/d   -x none can't detect d for some reason
+
+			PROJECT->setValue("stdlibs", "dynamic");
 		
 			break;
 	}

@@ -11,9 +11,7 @@
 #define COMPILERGCC_H
 
 #include "compiler.h"
-#include <vector>
-#include <string>
-#include <set>
+#include "tools.h"
 
 class CompilerGcc: public Compiler
 {
@@ -23,24 +21,26 @@ class CompilerGcc: public Compiler
 	bool localCompile();
 	bool localLink();
 	
-	std::set<std::string> getSourceList();
+	StrSet getSourceList();
 	std::vector<CList> compileList(bool rcCheck = true);
 	std::string getLdCall(bool rlCheck);
 	std::string genCFlags(std::string filename, bool includeLibs = false, std::string language = "");
 	std::string parseCFlags(std::string valName);
 
 	private:
-	bool compileFileByFile();
-	bool compileSingleCall();
-	bool compileAmalgamate();
+	bool compileFileByFile(StrSet list);
+	bool compileSingleCall(StrSet list);
+	bool compileAmalgamate(StrSet list);
 
-	bool checkRecompileRecursive(std::vector<std::string> stack, std::string src, std::string obj, int depth = 0);
+	bool checkRecompileRecursive(StrVec stack, std::string src, std::string obj, int depth = 0);
 	bool checkRecompile(std::string src, std::string obj);
 	void markRecompile(std::string src, std::string obj);
 	bool checkLibs();
 	bool pkgCall(std::string switches);
+	StrSet getStdLibs(StrSet sources);
 
 	std::string guessLanguage(std::string filename);
+	std::string compilerFromLanguage(std::string lang);
 	
 	std::string pkgGetFlags(std::string lib, bool cflags); // TODO remove this
 
@@ -51,7 +51,8 @@ class CompilerGcc: public Compiler
 
 	bool hasPkgConfig;
 	enum IncPathType { Quoted, Bracket };
-	std::vector<std::string> incPaths[2]; // first is quoted paths, second is <> paths
+	StrVec incPaths[2]; // first is quoted paths, second is <> paths
+	StrSet sources;
 };
 
 #endif
