@@ -189,7 +189,7 @@ void Spank::setTemplate(int type)
 		PROJECT->setValue("find", "find");
 		PROJECT->setValue("spank", "");
 		PROJECT->setValue("tar", "tar");
-		PROJECT->setValue("ar", "ar");
+		PROJECT->setValue("ar", "$(host_dash)ar");
 		PROJECT->setValue("stripsrc", "false");
 		PROJECT->setValue("homedir", "$(HOME)/.spank");
 		PROJECT->setValue("jobs", "2");
@@ -481,6 +481,7 @@ void Spank::handleArgs(int argc, const char* const* argv){
 			PROJECT->setValue("binary_suffix", targetPlatform == "mingw32" ? ".exe" : "_64.exe");
 			PROJECT->setValue("lib-shared_prefix", "");
 			PROJECT->setValue("lib-shared_suffix", ".dll");
+			PROJECT->setValue("inst_prefix", "/usr/$(host)/");
 		}
 		else if(targetPlatform != "posix"){
 			LOG("unknown target platform: '" << targetPlatform << "', assuming posix", LOG_WARNING);
