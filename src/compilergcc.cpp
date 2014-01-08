@@ -419,48 +419,10 @@ std::string CompilerGcc::getLdCall(bool rlCheck)
 	}
 }
 
-// TODO, remove this
-std::string CompilerGcc::pkgGetFlags(std::string lib, bool cflags)
-{
-	std::string call;
-
-	if(cflags){
-		LOG("Getting cflags from pkg-config", LOG_DEBUG);
-		call = "--cflags ";
-	}else{
-		LOG("Getting ldflags from pkg-config", LOG_DEBUG);
-		call = "--libs ";
-	}
-
-	call.append(lib);
-
-	if(!hasPkgConfig){
-		LOG("No pkg-config, ignoring lib", LOG_DEBUG);
-		return "";
-	}
-
-	if(!pkgCall(call)){
-		LOG("There was an error calling pkg-config", LOG_ERROR);
-		LOG("Ignoring library '" << lib << "'", LOG_WARNING);
-		return "";
-	}else{
-		std::string result = FILES->getTmpDir();
-		std::string ret;
-
-		result.append("/pkgresult");
-		std::ifstream in(result.c_str());
-		getline(in, ret);
-		ret.append(" ");
-		in.close();
-		LOG("pkg-config returned this as flags: " << ret, LOG_DEBUG);
-		return ret;
-	}
-}
-
 bool CompilerGcc::pkgCall(std::string switches)
 {
 	std::stringstream call;
-	call << PROJECT->getValueStr("pkg-config") << " " << switches << " 2> " << FILES->getTmpDir() << "/pkgresult >> " << FILES->getTmpDir() << "/pkgresult";
+	call << PROJECT->getValueStr("pkg-config") << " " << switches << " 2> /dev/null >> /dev/null";
 	LOG("Calling pkg-config with: '" << call.str().c_str() << "'", LOG_DEBUG);
 	int ret = system(call.str().c_str());
 	LOG("pkg-config returned " << ret, LOG_DEBUG);
