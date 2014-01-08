@@ -143,12 +143,12 @@ bool InstallerDeb::install(bool fake)
 
 	LOG("Compressing data.", LOG_EXTRA_VERBOSE);
 	
-	FORMSTR(dataCmd, PROJECT->getValueStr("tar") << " -czv --owner root --group root -C " << dataDir << " -f " << debDir << "/data.tar.gz .");
+	FORMSTR(dataCmd, PROJECT->getValueStr("tar") << " -czv --owner root --group root -C " << dataDir << " -f '" << debDir << "/data.tar.gz' .");
 	Tools::execute(dataCmd);
 	
 	LOG("Compressing control.", LOG_EXTRA_VERBOSE);
 	
-	FORMSTR(controlCmd, PROJECT->getValueStr("tar") << " -czv --owner root --group root -C " << controlDir << " -f " << debDir << "/control.tar.gz .");
+	FORMSTR(controlCmd, PROJECT->getValueStr("tar") << " -czv --owner root --group root -C '" << controlDir << "' -f '" << debDir << "/control.tar.gz' .");
 	Tools::execute(controlCmd);
 
 	LOG("Assembling package.", LOG_EXTRA_VERBOSE);
