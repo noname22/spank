@@ -68,7 +68,7 @@ std::vector<CList> CompilerGcc::compileList(bool rcCheck)
 			if(PROJECT->getValueStr("targettype") == "lib-shared")
 				call << PROJECT->getValueStr("fpic") << " ";
 
-			call << "-o " << obj;
+			call << "-o '" << obj << "'";
 			
 			tmp.call = call.str();
 			tmp.src = *it;
@@ -357,13 +357,13 @@ std::string CompilerGcc::getLdCall(bool rlCheck)
 	if(targettype == "lib-static"){
 		call << PROJECT->getValueStr("ar") << " rcs " << target;
 	}else if(targettype == "lib-shared"){
-		call << PROJECT->getValueStr("linker") << " -shared -o " << target;
+		call << PROJECT->getValueStr("linker") << " -shared -o '" << target << "'";
 	}else{
 		if(targettype != "binary"){
 			LOG("unknown target type: '" << targettype << "', assuming binary", LOG_WARNING);
 			targettype = "binary";
 		}
-		call << PROJECT->getValueStr("linker") << " -o " << target;
+		call << PROJECT->getValueStr("linker") << " -o '" << target << "'";
 	}
 	
 	
@@ -383,7 +383,7 @@ std::string CompilerGcc::getLdCall(bool rlCheck)
 		}
 
 		if(strlen(line) != 0){
-			call << " " << line;
+			call << " '" << line << "'";
 		}
 	}
 
@@ -644,7 +644,7 @@ bool CompilerGcc::compileAmalgamate(StrSet list)
 	if(PROJECT->getValueStr("targettype") == "lib-shared")
 		call << PROJECT->getValueStr("fpic") << " ";
 
-	call << "-o " << object;
+	call << "-o '" << object << "'";
 
 	return Tools::execute(call.str(), 0, 0, false) == 0;
 }
@@ -671,7 +671,7 @@ bool CompilerGcc::compileSingleCall(StrSet list)
 		call << PROJECT->getValueStr("fpic") << " ";
 	}
 
-	call << " -o " << PROJECT->getValueStr("target");
+	call << " -o '" << PROJECT->getValueStr("target") << "'";
 
 	return Tools::execute(call.str(), 0, 0, false) == 0;
 }
