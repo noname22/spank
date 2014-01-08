@@ -222,10 +222,10 @@ int Tools::execute(std::string cmd, std::string* out, std::string* err, bool sup
 	tmpCmd << cmd;
 
 	if(out || supress)
-		tmpCmd << " >" << (out ? outFile : "/dev/null");
+		tmpCmd << " > '" << (out ? outFile : "/dev/null") << "'";
 
 	if(err || supress)
-		tmpCmd << " 2>" << (err ? errFile : "/dev/null");
+		tmpCmd << " 2> '" << (err ? errFile : "/dev/null") << "'";
 		
 
 	LOG("Executing: " << tmpCmd.str(), LOG_DEBUG);
