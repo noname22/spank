@@ -105,8 +105,8 @@ void FilesUnix::wait()
 bool FilesUnix::find(std::string what, std::string where, std::string result)
 {
 	std::stringstream call;
-	call << PROJECT->getValueStr("find") << " " << where << " -iname \"" << 
-		what << "\" >> " << result;
+	call << PROJECT->getValueStr("find") << " " << where << " -iname '" << 
+		what << "' >> '" << result << "'";
 
 	LOG(call.str(), LOG_EXTRA_VERBOSE);
 	return system(call.str().c_str()) == 0;
