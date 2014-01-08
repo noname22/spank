@@ -62,7 +62,7 @@ bool ExportMakefile::exp(std::string fileName)
 
 	for(int i=0; i < (int)cList.size(); i++){
 		file << cList.at(i).obj.c_str() << ": " << cList.at(i).src.c_str() << std::endl;
-		file << "\t@-mkdir -p " << FILES->getTmpDir() << std::endl;
+		file << "\t@-mkdir -p '" << FILES->getTmpDir() << "'" << std::endl;
 		file << "\t$(COMPILER) -c " << cList.at(i).src.c_str() << " -o " << cList.at(i).obj.c_str() << " $(CFLAGS)" << std::endl << std::endl;
 	}
 //	file << "$(SRCS):" << std::endl << "\t$(COMPILER) -c $(CFLAGS) -c $(SRCS)" << std::endl << std::endl;

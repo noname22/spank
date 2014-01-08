@@ -14,6 +14,7 @@
 
 #include <cstring>
 #include <cstdlib>
+#include <sstream>
 
 int Compiler::countLines(std::string name)
 {
@@ -127,10 +128,7 @@ bool Compiler::localClean()
 	std::string target = PROJECT->getValueStr("target", 0);
 
 	if(FILES->isDir(tmp.c_str())){
-		// TODO HACK
-		std::string cmd("rm -rf ");
-		cmd.append(tmp);
-		system(cmd.c_str());
+		FILES->removeDir(tmp);
 	}
 	
 	if(FILES->fileExists(target)){

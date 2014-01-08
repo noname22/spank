@@ -43,9 +43,9 @@ bool ExportShell::exp(std::string fileName)
 
 
 	// Check if the temp directory exists, create it if not.
-	file << "if [ ! -d " << FILES->getTmpDir() << " ]" << std::endl;
+	file << "if [ ! -d '" << FILES->getTmpDir() << "' ]" << std::endl;
 	file << "then" << std::endl;
-	file << "\tmkdir -p " << FILES->getTmpDir() << std::endl;
+	file << "\tmkdir -p '" << FILES->getTmpDir() << "'" << std::endl;
 	file << "fi" << std::endl;
 
 	// Check if the temp directory exists (has been created), if so, then proceed
