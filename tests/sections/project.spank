@@ -1,0 +1,9 @@
+[-common]
+cflags std=c99 Wall
+name   program
+
+[release: common]
+cflags O3
+
+[*debug: common]
+cflags g O0
