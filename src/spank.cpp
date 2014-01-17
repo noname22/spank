@@ -15,6 +15,7 @@
 #include "project.h"
 #include "tools.h"
 #include "system.h"
+#include "macros.h"
 
 Spank::Spank(int argc, char** argv)
 {
@@ -174,6 +175,7 @@ void Spank::setTemplate(int type)
 		PROJECT->setValue("help", "no");
 		PROJECT->setValue("tmpdir", "");
 		PROJECT->setValue("verbosity", "2");
+		PROJECT->setValue("showbuildconfigs", "false");
 		PROJECT->setValue("showconfig", "false");
 		PROJECT->setValue("ldflags", "");
 		PROJECT->setValue("exclude", "");
@@ -198,6 +200,7 @@ void Spank::setTemplate(int type)
 		PROJECT->setValue("projectpath", currPath);
 		PROJECT->setValue("compilation-strategy", "file-by-file");
 		PROJECT->setValue("stdlibs", "no");
+		PROJECT->setValue("extraarg", "");
 
 		// set to eg. g++ depending on language
 		PROJECT->setValue("compiler-from-language", "gcc"); 
@@ -417,19 +420,66 @@ void Spank::printBanner(int banner)
 }
 
 void Spank::handleArgs(int argc, const char* const* argv){
-
 	setTemplate(TEMPLATE_DEFAULT);
 
 	if(!PROJECT->fromCmdLine(argc, argv)){
 		printBanner(BANNER_LOGO);
 		exit(1);
-	}else if(PROJECT->getValueBool("help", 0)){
+	}else if(PROJECT->getValueBool("help")){
 		printBanner(BANNER_LOGO);
 		printBanner(BANNER_USAGE);
 		exit(0);
+	}else if(PROJECT->getValueBool("showbuildconfigs")){
+		Config::printSectionList(PROJECT->getSectionList());
+		exit(0);
 	}else{
 		LOGI->setLogLevel(PROJECT->getValueInt("verbosity", 0));
+		
 		printBanner(BANNER_LOGO);
+
+		// determine section
+		std::string section = "default";
+		std::string extraarg = PROJECT->getValueStr("extraarg");
+		std::vector<Section> secs = PROJECT->getSectionList();
+
+		if(extraarg != ""){
+			// if the default project doesn't contain the section specified as an extra argument
+			// try old style loading of extra project files
+			if(Config::listHasSection(secs, extraarg)){
+				section = extraarg;
+			}else{
+				FORMSTR(tmp2, extraarg << ".spank");
+				PROJECT->setValue("project", tmp2, VAR_CMDLINE); 
+				FORMSTR(tmp3, "spank/" << extraarg << ".spank");
+				PROJECT->addValue("project", tmp3, VAR_CMDLINE); 
+			
+				// reload sections since projects were added
+				secs = PROJECT->getSectionList();
+			}
+		}
+
+		if(secs.size() > 0){
+			if(section == "default"){
+				Section dfl = Config::getDefaultSectionFromList(secs);
+
+				if(dfl.name == ""){
+					LOG("no build configuration specified", LOG_FATAL);
+					LOG("no default build configuration in project file(s), please specify one explicitly", LOG_INFO);
+					Config::printSectionList(secs);
+					exit(1);
+				}
+
+				section = dfl.name;
+			}
+
+			if(!Config::listHasSection(secs, section)){
+				LOG("no such build configuration: " << section, LOG_FATAL);
+				Config::printSectionList(secs);
+				exit(1);
+			}
+		}
+
+		LOG("using build configuration: " << section, LOG_VERBOSE);
 
 		bool noConfig = true;
 
@@ -438,7 +488,7 @@ void Spank::handleArgs(int argc, const char* const* argv){
 		}
 	
 		for(int i=0; i < PROJECT->getNumValues("project"); i++){
-			if(PROJECT->loadConfig(PROJECT->getValueStr("project", i))){
+			if(PROJECT->loadConfig(PROJECT->getValueStr("project", i), section)){
 				noConfig = false;
 			}
 		}

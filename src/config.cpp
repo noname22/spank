@@ -86,10 +86,11 @@ bool Config::fromCmdLine(int argc, const char* const* argv)
 						actionSet = true;
 					}else{
 						// Something written after action is parsed as a project
-						FORMSTR(tmp2, tmp << ".spank");
+						setValue("extraarg", tmp);
+						/*FORMSTR(tmp2, tmp << ".spank");
 						setValue("project", tmp2, VAR_CMDLINE); 
 						FORMSTR(tmp3, "spank/" << tmp << ".spank");
-						addValue("project", tmp3, VAR_CMDLINE); 
+						addValue("project", tmp3, VAR_CMDLINE); */
 					}
 				}
 			}
@@ -245,7 +246,7 @@ bool Config::parseSection(std::string line, Section& sec)
 	char section[512] = {0};
 	char inherits[512] = {0};
 
-	int ret = sscanf(line.c_str(), "[%511[^:] : %511[^]]]", section, inherits);
+	int ret = sscanf(line.c_str(), "[%511[^]:] : %511[^]]]", section, inherits);
 
 	if(ret < 1)
 		return false;
@@ -259,7 +260,7 @@ bool Config::parseSection(std::string line, Section& sec)
 	return true;
 }
 
-bool Config::loadConfig(std::string filename, std::string section, int depth)
+bool Config::loadConfig(std::string filename, std::string section, int depth, std::string lastFilename)
 {
 	if(depth > 255){
 		LOG("Too many includes (255). Are you perhaps including two project files from eachother?", LOG_ERROR);
@@ -278,7 +279,7 @@ bool Config::loadConfig(std::string filename, std::string section, int depth)
 	if(!in.good())
 		return false;
 	
-	LOG("Loading project file " << filename, LOG_VERBOSE);
+	LOG("Loading project file " << filename, filename != lastFilename ? LOG_VERBOSE : LOG_DEBUG);
 
 	while( in.good() ){
 		i=0;
@@ -295,15 +296,15 @@ bool Config::loadConfig(std::string filename, std::string section, int depth)
 		if(parseSection(get, sec)){
 			parsingSection = sec.name;
 
-			if(sec.inherits != "")
-				loadConfig(filename, sec.inherits, depth + 1);
+			if(sec.name == section && sec.inherits != "")
+				loadConfig(filename, sec.inherits, depth + 1, filename);
 
-			break;
+			continue;
 		}
 
 		// only load data in the currently active section
 		if(parsingSection != section)
-			break;
+			continue;
 
 		parse.str(get);
 
@@ -360,7 +361,7 @@ bool Config::loadConfig(std::string filename, std::string section, int depth)
 
 			if(item.key == "include"){
 				for(std::vector<std::string>::iterator it = item.value.begin(); it != item.value.end(); it++){
-					if(!loadConfig(*it, "default", depth + 1)){
+					if(!loadConfig(*it, "default", depth + 1, filename)){
 						LOG("In file: " << filename << ", line: " << lineCount << " couldn't include '" << *it << "'", LOG_FATAL);
 						exit(1);
 					}
@@ -464,18 +465,62 @@ int Config::getNumValues(std::string key)
 	return 0;
 }
 
-std::vector<Section> Config::getSectionList(std::string filename)
+std::vector<Section> Config::getSectionList()
 {
-	std::ifstream in(filename.c_str());
-	std::string line;
+	int count = getNumValues("project");
 	std::vector<Section> ret;
+	
+	for(int i = 0; i < count; i++){
+		std::string filename = getValueStr("project", i);
 
-	while(getline(in, line).good()){
-		Section sec;
-		if(parseSection(line, sec)){
-			ret.push_back(sec);
+		try {
+			std::ifstream in(filename.c_str());
+			std::string line;
+
+			while(getline(in, line).good()){
+				Section sec;
+				if(parseSection(line, sec)){
+					sec.source = filename;
+					ret.push_back(sec);
+				}
+			}
+
+			in.close();
+		}
+
+		catch (std::ifstream::failure ex){
+			LOG("could not load file: " << filename, LOG_VERBOSE);
 		}
 	}
 
 	return ret;
+}
+	
+bool Config::listHasSection(std::vector<Section> sections, std::string name)
+{
+	for(std::vector<Section>::iterator it = sections.begin(); it != sections.end(); it++){
+			if(it->name == name)
+				return true;
+	}
+	return false;
+}
+
+Section Config::getDefaultSectionFromList(std::vector<Section> sections)
+{
+	for(std::vector<Section>::iterator it = sections.begin(); it != sections.end(); it++){
+			if(it->isDefault)
+				return *it;
+	}
+
+	Section sec;
+	return sec;
+}
+
+void Config::printSectionList(std::vector<Section> sections)
+{
+	LOG("Available build configurations:", LOG_INFO);
+	for(std::vector<Section>::iterator it = sections.begin(); it != sections.end(); it++){
+		if(it->isPublic)
+			LOG("  " << it->name << (it->isDefault ? " (default)" : ""), LOG_INFO);
+	}
 }

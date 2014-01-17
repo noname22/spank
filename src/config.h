@@ -38,6 +38,7 @@ class ConfigItem {
 class Section {
 	public:
 	std::string name;
+	std::string source;
 	std::string inherits;
 	bool isPublic;
 	bool isDefault;
@@ -63,7 +64,7 @@ class Config{
 
 	bool fromCmdLine(int argc, const char* const* argv);
 
-	bool loadConfig(std::string filename, std::string section = "default", int depth = 0);
+	bool loadConfig(std::string filename, std::string section = "default", int depth = 0, std::string lastFilename = "");
 	std::string getValueStr(std::string key, int index = 0, int depth = 0); // depth should be considered private, used for recursion
 
 	std::string getValueStr(std::string key, std::string separator);
@@ -72,7 +73,12 @@ class Config{
 	bool getValueBool(std::string key, int index = 0);
 	int getValueInt(std::string key, int index = 0);
 	int getNumValues(std::string key);
-	static std::vector<Section> getSectionList(std::string filename);
+	
+	std::vector<Section> getSectionList();
+
+	static bool listHasSection(std::vector<Section> sections, std::string section);
+	static Section getDefaultSectionFromList(std::vector<Section> sections);
+	static void printSectionList(std::vector<Section> sections);
 };
 
 #endif
