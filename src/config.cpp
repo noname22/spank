@@ -129,7 +129,7 @@ void Config::dumpConfig()
 
 	for(std::map<std::string, ConfigItem>::iterator it = configItems.begin(); it != configItems.end(); it++){
 		std::ostringstream tmp;
-		tmp << "[" << getEntryTypeName(it->second.type) << "] " << it->second.variable << "(" << it->second.value.size() << ")" << " =\t";
+		tmp << "[" << getEntryTypeName(it->second.type) << "] " << it->second.key << "(" << it->second.value.size() << ")" << " =\t";
 		bool first = true;
 
 		for(std::vector<std::string>::iterator vit = it->second.value.begin(); vit != it->second.value.end(); vit++){
@@ -145,85 +145,85 @@ void Config::dumpConfig()
 	LOG("", LOG_INFO);
 }
 
-bool Config::setValue(std::string variable, std::string value, int type){
-	return setAddValue(C_SET, variable, value, type);
+bool Config::setValue(std::string key, std::string value, int type){
+	return setAddValue(C_SET, key, value, type);
 }
 
 // Add a value only if it doesn't exist
-bool Config::overlayValue(std::string variable, std::string value)
+bool Config::overlayValue(std::string key, std::string value)
 {
-	if(configItems.count(variable) == 0){
+	if(configItems.count(key) == 0){
 		ConfigItem tmp;
 		tmp.value.push_back(value);
-		tmp.variable = variable;
-		configItems[variable] = tmp;
+		tmp.key = key;
+		configItems[key] = tmp;
 		return true;
 	}
 	return false;
 }
 
-bool Config::setAddValue(int action, std::string variable, std::string value, int type){
+bool Config::setAddValue(int action, std::string key, std::string value, int type){
 	bool deleted=false;
 
-	if(variable == "homedir"){
-		LOG(variable << " " << value, LOG_DEBUG);
+	if(key == "homedir"){
+		LOG(key << " " << value, LOG_DEBUG);
 	}
 
-	bool exists = configItems.count(variable) != 0;
+	bool exists = configItems.count(key) != 0;
 
 	if(exists && (
-			(action == C_SET && configItems[variable].type <= type) || 
-			(action == C_ADD && configItems[variable].type < type)))
+			(action == C_SET && configItems[key].type <= type) || 
+			(action == C_ADD && configItems[key].type < type)))
 	{
-		delValue(variable);
+		delValue(key);
 		deleted = true;
 	}
 
-	if(configItems.count(variable) != 0){
-		if(configItems[variable].type <= type){
-			configItems[variable].value.push_back(value);
+	if(configItems.count(key) != 0){
+		if(configItems[key].type <= type){
+			configItems[key].value.push_back(value);
 			return true;
 		}
 	}else{
-		if(type == VAR_INTERNAL || deleted || variable.substr(0, 5) == "user_"){
+		if(type == VAR_INTERNAL || deleted || key.substr(0, 5) == "user_"){
 			ConfigItem tmp;
 			tmp.value.push_back(value);
-			tmp.variable = variable;
+			tmp.key = key;
 			tmp.type = type;
-			configItems[variable] = tmp;
+			configItems[key] = tmp;
 			return true;
 		}else{
-			LOG("Unknown option: '" << variable << "'", LOG_ERROR);
+			LOG("Unknown option: '" << key << "'", LOG_ERROR);
 		}
 	}
 
 	return false;
 }
 		
-bool Config::addValue(std::string variable, std::string value, int type)
+bool Config::addValue(std::string key, std::string value, int type)
 {
-	return setAddValue(C_ADD, variable, value, type);
+	return setAddValue(C_ADD, key, value, type);
 }
 
-bool Config::delValue(std::string variable)
+bool Config::delValue(std::string key)
 {
-	bool ret = configItems.count(variable) != 0;
-	configItems.erase(variable);
+	bool ret = configItems.count(key) != 0;
+	configItems.erase(key);
 	return ret;
 }
-std::string Config::getValueStr(std::string variable, std::string separator){
-	return getValueStr(variable, "", separator, "");
+std::string Config::getValueStr(std::string key, std::string separator){
+	return getValueStr(key, "", separator, "");
 }
 
-std::string Config::getValueStr(std::string variable, std::string addBefore, std::string separator, std::string addAfter, bool reverse)
+std::string Config::getValueStr(std::string key, std::string addBefore, std::string separator, std::string addAfter, bool reverse)
 {
 	std::string ret;
-	if(configItems.count(variable) != 0 && getValueStr(variable, 0) != ""){
+	if(configItems.count(key) != 0 && getValueStr(key, 0) != ""){
 		ret.append(addBefore);
 		bool first = true;
 
-		int start = reverse ? getNumValues(variable) - 1 : 0;
-		int end = reverse ? -1 : getNumValues(variable);
+		int start = reverse ? getNumValues(key) - 1 : 0;
+		int end = reverse ? -1 : getNumValues(key);
 
 		for(int i = start; i != end; i += reverse ? -1 : 1){
 			if(first){
@@ -231,14 +231,35 @@ std::string Config::getValueStr(std::string variable, std::string addBefore, std
 			}else{
 				ret.append(separator);
 			}
-			ret.append(getValueStr(variable, i));
+			ret.append(getValueStr(key, i));
 		}
 		ret.append(addAfter);
 	}
 	return ret;
 }
 
-bool Config::loadConfig(std::string filename, int depth)
+bool Config::parseSection(std::string line, Section& sec)
+{
+	std::stringstream ss(line);
+
+	char section[512] = {0};
+	char inherits[512] = {0};
+
+	int ret = sscanf(line.c_str(), "[%511[^:] : %511[^]]]", section, inherits);
+
+	if(ret < 1)
+		return false;
+	
+	sec.isPublic = section[0] != '-';
+	sec.isDefault = section[0] == '*';
+
+	sec.name = (!sec.isPublic || sec.isDefault) ? section + 1 : section;
+	sec.inherits = inherits;
+
+	return true;
+}
+
+bool Config::loadConfig(std::string filename, std::string section, int depth)
 {
 	if(depth > 255){
 		LOG("Too many includes (255). Are you perhaps including two project files from eachother?", LOG_ERROR);
@@ -248,37 +269,47 @@ bool Config::loadConfig(std::string filename, int depth)
 	std::ifstream in(filename.c_str());
 	std::istringstream parse;
 	std::string get;
-	int i=0, lineCount=0;
+	int i = 0, lineCount = 0, itemsInsertedCount = 0;
 	bool goodItem = false;
 	ConfigItem item;
 
-	if( !in.good() ){
-		//LOG("Can't read from the file, is it empty?", LOG_WARNING);
+	std::string parsingSection = "default";
 
+	if(!in.good())
 		return false;
-	}	
 	
 	LOG("Loading project file " << filename, LOG_VERBOSE);
 
-	//configItems.clear();
-	
 	while( in.good() ){
 		i=0;
-		item.variable = "";
+		item.key = "";
 		goodItem = false;
 
 		item.value.clear();
 		std::getline(in, get);
 		lineCount++;	
 
+		Section sec;
+
+		// if parseSection parsed a section line, continue with next line
+		if(parseSection(get, sec)){
+			parsingSection = sec.name;
+
+			if(sec.inherits != "")
+				loadConfig(filename, sec.inherits, depth + 1);
+
+			break;
+		}
+
+		// only load data in the currently active section
+		if(parsingSection != section)
+			break;
+
 		parse.str(get);
-		
-//		LOG("Parsing the line: " << parse.str(), LOG_DEBUG);
-		
+
 		while( parse >> get ){
-			if(get.length() > 0 && get.at(0) == '#'){
+			if(get.length() > 0 && get.at(0) == '#')
 				break;
-			}
 
 			if(get.length() > 0 && get.at(0) == '"'){
 				bool missingQuote = true;
@@ -309,11 +340,8 @@ bool Config::loadConfig(std::string filename, int depth)
 			}
 
 			if(i == 0){
-				transform(get.begin(), get.end(), get.begin(), tolower);
-				item.variable = get;
-//				LOG("Variable: " << get, LOG_DEBUG);
+				item.key = get;
 			}else{
-//				LOG("Adding value: " << get, LOG_DEBUG);
 				item.value.push_back(get);
 				goodItem = true;
 			}
@@ -321,18 +349,18 @@ bool Config::loadConfig(std::string filename, int depth)
 		}
 		
 		if(goodItem){
-//			LOG("Adding this good item", LOG_DEBUG);
-			//configItems.push_back(item);
+			itemsInsertedCount++;
+
 			for(int x=0; x < (int)item.value.size(); x++){
-				if(!addValue(item.variable, item.value.at(x), VAR_PROJECT) && configItems.count(item.variable) != 0){
+				if(!addValue(item.key, item.value.at(x), VAR_PROJECT) && configItems.count(item.key) != 0){
 					LOG("Syntax error in project file '" << filename << "', line: " << lineCount, LOG_FATAL);
 					exit(1);
 				}
 			}
 
-			if(item.variable == "include"){
+			if(item.key == "include"){
 				for(std::vector<std::string>::iterator it = item.value.begin(); it != item.value.end(); it++){
-					if(!loadConfig(*it, depth + 1)){
+					if(!loadConfig(*it, "default", depth + 1)){
 						LOG("In file: " << filename << ", line: " << lineCount << " couldn't include '" << *it << "'", LOG_FATAL);
 						exit(1);
 					}
@@ -342,11 +370,17 @@ bool Config::loadConfig(std::string filename, int depth)
 		
 		parse.clear();		
 	}
+
+	if(itemsInsertedCount == 0){
+		LOG("empty configuration for: " << section, LOG_FATAL);
+		exit(1);
+	}
+
 	return true;
 }
 
-bool Config::getValueBool(std::string variable, int index){
-	std::string tmp = getValueStr(variable, index);
+bool Config::getValueBool(std::string key, int index){
+	std::string tmp = getValueStr(key, index);
 	if(tmp == "true" || tmp == "yes" || tmp == "1" || tmp == "si" || tmp == "ja" || tmp == "da" || tmp == "oui" || tmp == "jawohl"){
 		return true;
 	}else{
@@ -354,20 +388,20 @@ bool Config::getValueBool(std::string variable, int index){
 	}
 }
 
-std::string Config::getValueStr(std::string variable, int index, int depth)
+std::string Config::getValueStr(std::string key, int index, int depth)
 {
-	//LOG("Looking up: " << variable, LOG_DEBUG);
+	//LOG("Looking up: " << key, LOG_DEBUG);
 
 	if(depth > SPANK_MAX_RECURSE){
-		LOG("Recurse limit (" << SPANK_MAX_RECURSE << ") exceeded in Config::getValueStr(), probably because of variable self referencing (or indirect self referencing).", LOG_ERROR);
-		LOG("Might be in: " << variable << "[" << index << "]", LOG_INFO);
+		LOG("Recurse limit (" << SPANK_MAX_RECURSE << ") exceeded in Config::getValueStr(), probably because of key self referencing (or indirect self referencing).", LOG_ERROR);
+		LOG("Might be in: " << key << "[" << index << "]", LOG_INFO);
 
 		return "";
 	} 
 
-	if(configItems.count(variable) != 0){
-		if((unsigned int)index <= configItems[variable].value.size()){
-			std::string ret = configItems[variable].value.at(index);
+	if(configItems.count(key) != 0){
+		if((unsigned int)index <= configItems[key].value.size()){
+			std::string ret = configItems[key].value.at(index);
 
 			//LOG("Parsing string: " << ret, LOG_DEBUG);
 
@@ -380,7 +414,7 @@ std::string Config::getValueStr(std::string variable, int index, int depth)
 				//LOG("stop: " << stop, LOG_DEBUG);
 
 				if(stop == std::string::npos){
-					LOG("Error parsing variable refernce: expected ')' near '" << ret << "'", LOG_ERROR);
+					LOG("Error parsing key refernce: expected ')' near '" << ret << "'", LOG_ERROR);
 				}
 
 				std::string ref = ret.substr(start + 2, stop - start - 2);
@@ -396,37 +430,52 @@ std::string Config::getValueStr(std::string variable, int index, int depth)
 		}
 	}
 
-	char* env = getenv(variable.c_str());
+	char* env = getenv(key.c_str());
 	if(env){
 		return env;
 	}
 
-	LOG("Couldn't find config variable: '" << variable << "'", LOG_FATAL);
+	LOG("Couldn't find config key: '" << key << "'", LOG_FATAL);
 	exit(1);
 
 	return "";
 }
 
-int Config::getValueInt(std::string variable, int index)
+int Config::getValueInt(std::string key, int index)
 {
-	if(configItems.count(variable) != 0){
-		if((unsigned int)index <= configItems[variable].value.size()){
-			return atoi(configItems[variable].value.at(index).c_str());
+	if(configItems.count(key) != 0){
+		if((unsigned int)index <= configItems[key].value.size()){
+			return atoi(configItems[key].value.at(index).c_str());
 		}
 	}
 
-	LOG("Couldn't find config variable: '" << variable << "'", LOG_FATAL);
+	LOG("Couldn't find config key: '" << key << "'", LOG_FATAL);
 	return -1;
 }
 
-int Config::getNumValues(std::string variable)
+int Config::getNumValues(std::string key)
 {
-	if(configItems.count(variable) != 0){
-		if(configItems[variable].value.size() == 1 && configItems[variable].value.at(0) == ""){
+	if(configItems.count(key) != 0){
+		if(configItems[key].value.size() == 1 && configItems[key].value.at(0) == ""){
 			return 0;
 		}
-		return configItems[variable].value.size();
+		return configItems[key].value.size();
 	}
 	return 0;
 }
 
+std::vector<Section> Config::getSectionList(std::string filename)
+{
+	std::ifstream in(filename.c_str());
+	std::string line;
+	std::vector<Section> ret;
+
+	while(getline(in, line).good()){
+		Section sec;
+		if(parseSection(line, sec)){
+			ret.push_back(sec);
+		}
+	}
+
+	return ret;
+}
