@@ -14,7 +14,7 @@ target		spank
 # --- Compiler stuff ---
 template	c++
 sourcedir	src
-cflags 		Wall pedantic ggdb
+cflags 		Wall pedantic ggdb Wfatal-errors
 
 # --- Installer stuff ---
 inst_copy	$(target) $(inst_prefix)bin/$(target)

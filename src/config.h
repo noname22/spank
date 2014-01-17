@@ -13,6 +13,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <map>
 #include "log.h"
 
 enum{
@@ -28,42 +29,39 @@ enum{
 
 class ConfigItem{
 	public:
-		ConfigItem();
-		std::string variable;
-		std::vector< std::string > value;
-		int type;
+	ConfigItem();
+	std::string variable;
+	std::vector< std::string > value;
+	int type;
 };	
 
 class Config{
-	private:
-		std::vector< ConfigItem > configItems;
-		int lookUp(std::string variable);
-	
-		bool setAddValue(int action, std::string variable, std::string value, int type);
+	std::map<std::string, ConfigItem> configItems;
+	bool setAddValue(int action, std::string variable, std::string value, int type);
 
-		std::string getEntryTypeName(int type);
-		void printItem(unsigned int index, int loglevel);
+	std::string getEntryTypeName(int type);
 	
 	public:
-		bool setValue(std::string variable, std::string value, int type = VAR_INTERNAL);
-		bool addValue(std::string variable, std::string value, int type = VAR_INTERNAL);
-		bool delValue(std::string variable);
-		bool overlayValue(std::string variable, std::string value);
+	Config();
 
-		void dumpConfig();
+	bool setValue(std::string variable, std::string value, int type = VAR_INTERNAL);
+	bool addValue(std::string variable, std::string value, int type = VAR_INTERNAL);
+	bool delValue(std::string variable);
+	bool overlayValue(std::string variable, std::string value);
 
-		bool fromCmdLine(int argc, const char* const* argv);
+	void dumpConfig();
 
-		bool loadConfig(std::string filename, int depth=0);
-		std::string getValueStr(std::string variable, int index = 0, int depth = 0); // depth should be considered private, used for recursion
+	bool fromCmdLine(int argc, const char* const* argv);
 
-		std::string getValueStr(std::string variable, std::string separator);
-		std::string getValueStr(std::string variable, std::string addBefore, std::string separator, std::string addAfter = "", bool reverse = false);
+	bool loadConfig(std::string filename, int depth=0);
+	std::string getValueStr(std::string variable, int index = 0, int depth = 0); // depth should be considered private, used for recursion
 
-		bool getValueBool(std::string variable, int index = 0);
-		int getValueInt(std::string variable, int index = 0);
-		int getNumValues(std::string variable);
-		Config();
+	std::string getValueStr(std::string variable, std::string separator);
+	std::string getValueStr(std::string variable, std::string addBefore, std::string separator, std::string addAfter = "", bool reverse = false);
+
+	bool getValueBool(std::string variable, int index = 0);
+	int getValueInt(std::string variable, int index = 0);
+	int getNumValues(std::string variable);
 };
 
 #endif
