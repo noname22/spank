@@ -56,18 +56,19 @@ Spank::Spank(int argc, char** argv)
 			LOG("building with new build configuration, forcing clean", LOG_VERBOSE);
 			PROJECT->setValue("forceclean", "true");
 		}
-
-		if(PROJECT->getValueBool("forceclean")){
-			LOG("Clean forced", LOG_DEBUG);
-			if(COMPILER->clean()){
-				LOG("done cleaning", LOG_VERBOSE);
-			}else{
-				exit(1);
-			}
-		}
 	}
 
 	Tools::saveTempValue("extraarg", extraarg);
+		
+	// forcing clean, if requested
+	if(PROJECT->getValueBool("forceclean")){
+		LOG("Clean forced", LOG_DEBUG);
+		if(COMPILER->clean()){
+			LOG("done cleaning", LOG_VERBOSE);
+		}else{
+			exit(1);
+		}
+	}
 
 	std::string action = PROJECT->getValueStr("action");
 
