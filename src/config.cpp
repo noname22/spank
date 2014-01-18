@@ -263,8 +263,9 @@ bool Config::parseSection(std::string line, Section& sec)
 bool Config::loadConfig(std::string filename, std::string section, int depth, std::string lastFilename)
 {
 	if(depth > 255){
-		LOG("Too many includes (255). Are you perhaps including two project files from eachother?", LOG_ERROR);
-		return false;
+		LOG("Too many includes or too deep build configuration inheritance (255).", LOG_ERROR);
+		LOG("Are you perhaps including two project files from eachother, or is a build configuration directly or indirectly inheriting itself?", LOG_INFO);
+		exit(1);
 	}
 
 	std::ifstream in(filename.c_str());

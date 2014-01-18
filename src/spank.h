@@ -35,7 +35,7 @@ class Spank{
 		Spank(int argc, char** argv);
 
 	private:
-	
+		void setDefaultConfig();
 		void setTemplate(int type);
 
 		void printBanner(int banner);
@@ -43,8 +43,6 @@ class Spank{
 		bool postBuild();
 
 		int getAction();
-
-		bool templateOnce;
 };
 
 

@@ -19,8 +19,6 @@
 
 Spank::Spank(int argc, char** argv)
 {
-	templateOnce = false;
-
 	handleArgs(argc, argv);
 
 	Log::getInstance()->restrictDebugOutputToFiles(PROJECT->getValues("debug-only-files"));
@@ -163,142 +161,138 @@ bool Spank::postBuild()
 	return true;
 }
 
+void Spank::setDefaultConfig()
+{
+	std::string currPath = FILES->realpath(".");
+	LASSERT(currPath != "", "could not locate current path!");
+
+	// Common defaults
+	
+	PROJECT->setValue("project", "project.spank");
+	PROJECT->addValue("project", "spank/project.spank");
+	PROJECT->setValue("config", "/etc/spank.conf");
+	PROJECT->addValue("config", "$(HOME)/.spank/config.spank");
+	PROJECT->setValue("target_name", "$(name)");
+	PROJECT->setValue("target", "$(target_prefix)$(target_name)$(target_suffix)");
+	PROJECT->setValue("sourcedir", ".");
+	PROJECT->setValue("cflags", "");
+	PROJECT->setValue("action", "none");
+	PROJECT->setValue("template", "default");
+	PROJECT->setValue("help", "no");
+	PROJECT->setValue("tmpdir", "");
+	PROJECT->setValue("verbosity", "2");
+	PROJECT->setValue("showbuildconfigs", "false");
+	PROJECT->setValue("showconfig", "false");
+	PROJECT->setValue("ldflags", "");
+	PROJECT->setValue("exclude", "");
+	PROJECT->setValue("rccheck", "recursive");
+	PROJECT->setValue("pp", "$(compiler) -E");
+	PROJECT->setValue("linker", "$(compiler)");
+	PROJECT->setValue("spankdefs", "true");
+	PROJECT->setValue("exporter", "makefile");
+	PROJECT->setValue("exportfile", "");
+	PROJECT->setValue("lib", "");
+	PROJECT->setValue("lib-static", "");
+	PROJECT->setValue("pkg-config", "PKG_CONFIG_PATH=$PKG_CONFIG_PATH:.:spank:$(prefix)/lib/pkgconfig pkg-config");
+	PROJECT->setValue("find", "find");
+	PROJECT->setValue("spank", "");
+	PROJECT->setValue("tar", "tar");
+	PROJECT->setValue("ar", "$(host_dash)ar");
+	PROJECT->setValue("stripsrc", "false");
+	PROJECT->setValue("homedir", "$(HOME)/.spank");
+	PROJECT->setValue("jobs", "2");
+	PROJECT->setValue("targettype", "binary");
+	PROJECT->setValue("fpic", "-fPIC");
+	PROJECT->setValue("projectpath", currPath);
+	PROJECT->setValue("compilation-strategy", "file-by-file");
+	PROJECT->setValue("stdlibs", "no");
+	PROJECT->setValue("extraarg", "");
+	PROJECT->setValue("forceclean", "false");
+	PROJECT->setValue("debug-only-files", "");
+
+	// set to eg. g++ depending on language
+	PROJECT->setValue("compiler-from-language", "gcc"); 
+
+	// Inter-project dependencies
+	PROJECT->setValue("depends", "");
+	PROJECT->setValue("depaction", "build");
+	
+	PROJECT->setValue("dep_printinfo", "no");
+
+	// TODO merge this with general library info
+	PROJECT->setValue("dep_target", "$(target)");
+	PROJECT->setValue("dep_cflags", "I$(projectpath)/include");
+	PROJECT->setValue("dep_ldflags", "L$(projectpath) -l$(name)");
+	PROJECT->setValue("dep_extra_ldflags", "");
+	PROJECT->setValue("dep_extra_cflags", "");
+
+	PROJECT->addValue("addhyphen", "true");
+	PROJECT->addValue("prebuildscript", "");
+	PROJECT->addValue("postbuildscript", "");
+	PROJECT->addValue("oncleanscript", "");
+	PROJECT->addValue("version", "0.1");
+	PROJECT->addValue("name", "untitled_project");
+	PROJECT->addValue("homepage", "none");
+	PROJECT->addValue("email", "nomail@example.com");
+	PROJECT->addValue("author", "author of $(name)");
+	PROJECT->addValue("description", "$(name) $(version)");
+	PROJECT->addValue("include", "");
+
+	// Target platform defaults (posix/native)
+
+	PROJECT->setValue("target_platform", "posix");
+	
+	PROJECT->setValue("host", "");
+	PROJECT->setValue("host_dash", "");
+	PROJECT->setValue("prefix", "/usr/$(host)");
+
+	PROJECT->setValue("binary_prefix", "");
+	PROJECT->setValue("binary_suffix", "");
+	PROJECT->setValue("lib-shared_prefix", "lib");
+	PROJECT->setValue("lib-shared_suffix", ".so.0");
+	PROJECT->setValue("lib-static_prefix", "lib");
+	PROJECT->setValue("lib-static_suffix", ".a");
+
+	PROJECT->setValue("target_prefix", "$(binary_prefix)");
+	PROJECT->setValue("target_suffix", "$(binary_suffix)");
+
+	// Installer defaults
+
+	PROJECT->addValue("inst_maintainer", "$(author)");
+	PROJECT->addValue("inst_maintainer_email", "$(email)");
+	PROJECT->addValue("inst_packagename", "$(target)");
+	PROJECT->addValue("inst_libpackagename", "lib$(target)");
+
+	PROJECT->addValue("installer", "unix");
+	PROJECT->addValue("inst_sudo", "sudo");
+
+	PROJECT->addValue("inst_prefix", "");
+
+	PROJECT->addValue("inst_prescript", "");
+	PROJECT->addValue("inst_postscript", "");
+	PROJECT->addValue("inst_rmprescript", "");
+	PROJECT->addValue("inst_rmpostscript", "");
+
+	PROJECT->addValue("inst_copy", "");
+	PROJECT->addValue("inst_mkdir", "");
+
+	PROJECT->addValue("inst_arch", "host");
+
+	// Deb installer
+
+	PROJECT->addValue("inst_deb_depends", "");
+	PROJECT->addValue("inst_deb_replaces", "");
+	PROJECT->addValue("inst_deb_conflicts", "");
+	PROJECT->addValue("inst_deb_section", "");
+	PROJECT->addValue("inst_deb_priority", "");
+	PROJECT->addValue("inst_deb_installedsize", "");
+	PROJECT->addValue("inst_deb_originalmaintainer", "");
+	PROJECT->addValue("inst_deb_source", "");
+}
+
 void Spank::setTemplate(int type)
 {
-
-	if(!templateOnce){
-		templateOnce = true;
-		
-		std::string currPath = FILES->realpath(".");
-		LASSERT(currPath != "", "could not locate current path!");
-		
-
-		// Common defaults
-		
-		PROJECT->setValue("project", "project.spank");
-		PROJECT->addValue("project", "spank/project.spank");
-		PROJECT->setValue("config", "/etc/spank.conf");
-		PROJECT->addValue("config", "$(HOME)/.spank/config.spank");
-		PROJECT->setValue("target_name", "$(name)");
-		PROJECT->setValue("target", "$(target_prefix)$(target_name)$(target_suffix)");
-		PROJECT->setValue("sourcedir", ".");
-		PROJECT->setValue("cflags", "");
-		PROJECT->setValue("action", "none");
-		PROJECT->setValue("template", "default");
-		PROJECT->setValue("help", "no");
-		PROJECT->setValue("tmpdir", "");
-		PROJECT->setValue("verbosity", "2");
-		PROJECT->setValue("showbuildconfigs", "false");
-		PROJECT->setValue("showconfig", "false");
-		PROJECT->setValue("ldflags", "");
-		PROJECT->setValue("exclude", "");
-		PROJECT->setValue("rccheck", "recursive");
-		PROJECT->setValue("pp", "$(compiler) -E");
-		PROJECT->setValue("linker", "$(compiler)");
-		PROJECT->setValue("spankdefs", "true");
-		PROJECT->setValue("exporter", "makefile");
-		PROJECT->setValue("exportfile", "");
-		PROJECT->setValue("lib", "");
-		PROJECT->setValue("lib-static", "");
-		PROJECT->setValue("pkg-config", "PKG_CONFIG_PATH=$PKG_CONFIG_PATH:.:spank:$(prefix)/lib/pkgconfig pkg-config");
-		PROJECT->setValue("find", "find");
-		PROJECT->setValue("spank", "");
-		PROJECT->setValue("tar", "tar");
-		PROJECT->setValue("ar", "$(host_dash)ar");
-		PROJECT->setValue("stripsrc", "false");
-		PROJECT->setValue("homedir", "$(HOME)/.spank");
-		PROJECT->setValue("jobs", "2");
-		PROJECT->setValue("targettype", "binary");
-		PROJECT->setValue("fpic", "-fPIC");
-		PROJECT->setValue("projectpath", currPath);
-		PROJECT->setValue("compilation-strategy", "file-by-file");
-		PROJECT->setValue("stdlibs", "no");
-		PROJECT->setValue("extraarg", "");
-		PROJECT->setValue("forceclean", "false");
-		PROJECT->setValue("debug-only-files", "");
-
-		// set to eg. g++ depending on language
-		PROJECT->setValue("compiler-from-language", "gcc"); 
-
-		// Inter-project dependencies
-		PROJECT->setValue("depends", "");
-		PROJECT->setValue("depaction", "build");
-		
-		PROJECT->setValue("dep_printinfo", "no");
-
-		// TODO merge this with general library info
-		PROJECT->setValue("dep_target", "$(target)");
-		PROJECT->setValue("dep_cflags", "I$(projectpath)/include");
-		PROJECT->setValue("dep_ldflags", "L$(projectpath) -l$(name)");
-		PROJECT->setValue("dep_extra_ldflags", "");
-		PROJECT->setValue("dep_extra_cflags", "");
-
-		PROJECT->addValue("addhyphen", "true");
-		PROJECT->addValue("prebuildscript", "");
-		PROJECT->addValue("postbuildscript", "");
-		PROJECT->addValue("oncleanscript", "");
-		PROJECT->addValue("version", "0.1");
-		PROJECT->addValue("name", "untitled_project");
-		PROJECT->addValue("homepage", "none");
-		PROJECT->addValue("email", "nomail@example.com");
-		PROJECT->addValue("author", "author of $(name)");
-		PROJECT->addValue("description", "$(name) $(version)");
-		PROJECT->addValue("include", "");
-
-		// Target platform defaults (posix/native)
-
-		PROJECT->setValue("target_platform", "posix");
-		
-		PROJECT->setValue("host", "");
-		PROJECT->setValue("host_dash", "");
-		PROJECT->setValue("prefix", "/usr/$(host)");
-
-		PROJECT->setValue("binary_prefix", "");
-		PROJECT->setValue("binary_suffix", "");
-		PROJECT->setValue("lib-shared_prefix", "lib");
-		PROJECT->setValue("lib-shared_suffix", ".so.0");
-		PROJECT->setValue("lib-static_prefix", "lib");
-		PROJECT->setValue("lib-static_suffix", ".a");
-
-		PROJECT->setValue("target_prefix", "$(binary_prefix)");
-		PROJECT->setValue("target_suffix", "$(binary_suffix)");
-
-		// Installer defaults
-
-		PROJECT->addValue("inst_maintainer", "$(author)");
-		PROJECT->addValue("inst_maintainer_email", "$(email)");
-		PROJECT->addValue("inst_packagename", "$(target)");
-		PROJECT->addValue("inst_libpackagename", "lib$(target)");
-
-		PROJECT->addValue("installer", "unix");
-		PROJECT->addValue("inst_sudo", "sudo");
-
-		PROJECT->addValue("inst_prefix", "");
-
-		PROJECT->addValue("inst_prescript", "");
-		PROJECT->addValue("inst_postscript", "");
-		PROJECT->addValue("inst_rmprescript", "");
-		PROJECT->addValue("inst_rmpostscript", "");
-
-		PROJECT->addValue("inst_copy", "");
-		PROJECT->addValue("inst_mkdir", "");
-
-		PROJECT->addValue("inst_arch", "host");
-
-		// Deb installer
-
-		PROJECT->addValue("inst_deb_depends", "");
-		PROJECT->addValue("inst_deb_replaces", "");
-		PROJECT->addValue("inst_deb_conflicts", "");
-		PROJECT->addValue("inst_deb_section", "");
-		PROJECT->addValue("inst_deb_priority", "");
-		PROJECT->addValue("inst_deb_installedsize", "");
-		PROJECT->addValue("inst_deb_originalmaintainer", "");
-		PROJECT->addValue("inst_deb_source", "");
-	}
-		
 	// Template specific defaults
-
 	switch(type){
 		case TEMPLATE_CPP:
 		case TEMPLATE_CPP11:
@@ -310,7 +304,8 @@ void Spank::setTemplate(int type)
 			PROJECT->setValue("cflags", "Wall");
 			PROJECT->addValue("cflags", "g");
 			PROJECT->setValue("language", "c++");
-			if(type == TEMPLATE_CPP11) PROJECT->addValue("cflags", "std=c++0x");
+			if(type == TEMPLATE_CPP11)
+				PROJECT->addValue("cflags", "std=c++0x");
 			break;
 		
 		case TEMPLATE_VALA:
@@ -340,13 +335,15 @@ void Spank::setTemplate(int type)
 			PROJECT->setValue("cflags", "Wall");
 			PROJECT->addValue("cflags", "g");
 			PROJECT->setValue("language", "c");
-			if(type == TEMPLATE_C99) PROJECT->addValue("cflags", "std=c99");
+			if(type == TEMPLATE_C99)
+				PROJECT->addValue("cflags", "std=c99");
 			break;
 		
 		case TEMPLATE_GCC_AUTO:
 			LOG("Using template: gcc-auto (default)", LOG_VERBOSE);
 			// note: no break
 		default:
+			LOG("defualt template", LOG_DEBUG);
 			PROJECT->setValue("template", "gcc-auto");
 
 			PROJECT->setValue("cflags", "Wall");
@@ -375,10 +372,8 @@ void Spank::setTemplate(int type)
 			//PROJECT->addValue("sources", "*.d");  // gdc/d   -x none can't detect d for some reason
 
 			PROJECT->setValue("stdlibs", "dynamic");
-		
 			break;
 	}
-
 }
 
 
@@ -435,7 +430,7 @@ void Spank::printBanner(int banner)
 }
 
 void Spank::handleArgs(int argc, const char* const* argv){
-	setTemplate(TEMPLATE_DEFAULT);
+	setDefaultConfig();
 
 	if(!PROJECT->fromCmdLine(argc, argv)){
 		printBanner(BANNER_LOGO);
