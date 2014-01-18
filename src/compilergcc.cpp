@@ -195,7 +195,9 @@ bool CompilerGcc::checkRecompileRecursive(StrVec stack, std::string src, std::st
 		return false;
 	}
 
-	setIncludePaths(src);
+	// don't run on anything but source files
+	if(depth == 0)
+		setIncludePaths(src);
 
 	std::fstream f(src.c_str());
 

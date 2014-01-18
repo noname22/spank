@@ -167,7 +167,6 @@ void Spank::setDefaultConfig()
 	LASSERT(currPath != "", "could not locate current path!");
 
 	// Common defaults
-	
 	PROJECT->setValue("project", "project.spank");
 	PROJECT->addValue("project", "spank/project.spank");
 	PROJECT->setValue("config", "/etc/spank.conf");
@@ -175,7 +174,6 @@ void Spank::setDefaultConfig()
 	PROJECT->setValue("target_name", "$(name)");
 	PROJECT->setValue("target", "$(target_prefix)$(target_name)$(target_suffix)");
 	PROJECT->setValue("sourcedir", ".");
-	PROJECT->setValue("cflags", "");
 	PROJECT->setValue("action", "none");
 	PROJECT->setValue("template", "default");
 	PROJECT->setValue("help", "no");
@@ -209,6 +207,15 @@ void Spank::setDefaultConfig()
 	PROJECT->setValue("extraarg", "");
 	PROJECT->setValue("forceclean", "false");
 	PROJECT->setValue("debug-only-files", "");
+			
+	// building related (reset with templates)
+	PROJECT->setValue("compiler", "");
+	PROJECT->setValue("sources", "");
+	PROJECT->setValue("template", "");
+	PROJECT->setValue("compilertype", "");
+	PROJECT->setValue("cflags", "");
+	PROJECT->addValue("cflags", "");
+	PROJECT->setValue("language", "");
 
 	// set to eg. g++ depending on language
 	PROJECT->setValue("compiler-from-language", "gcc"); 
@@ -332,6 +339,7 @@ void Spank::setTemplate(int type)
 		case TEMPLATE_C99:
 			LOG("Using template: c", LOG_VERBOSE);
 			PROJECT->setValue("template", "c");
+			PROJECT->setValue("compilertype", "gcc");
 			PROJECT->setValue("cflags", "Wall");
 			PROJECT->addValue("cflags", "g");
 			PROJECT->setValue("language", "c");
