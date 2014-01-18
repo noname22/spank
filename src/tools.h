@@ -79,6 +79,8 @@ class Tools
 	static ForkResult wait(PidList& pidList, unsigned int max);
 
 	static bool executeAll(std::string configItem, std::string prefix = "", bool fake = false);
+	static void saveTempValue(std::string key, std::string value);
+	static bool loadTempValue(std::string key, std::string& value);
 };
 
 #endif

@@ -465,6 +465,16 @@ int Config::getNumValues(std::string key)
 	return 0;
 }
 
+std::vector<std::string> Config::getValues(std::string key)
+{
+	std::vector<std::string> ret;
+
+	for(int i = 0; i < getNumValues(key); i++)
+		ret.push_back(getValueStr(key, i));
+	
+	return ret;
+}
+
 std::vector<Section> Config::getSectionList()
 {
 	int count = getNumValues("project");

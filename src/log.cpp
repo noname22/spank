@@ -9,15 +9,17 @@
 
 #include "log.h"
 #include <iostream>
+#include <iomanip>
+#include <sstream>
 
 Log* Log::logInstance = NULL;
 
 Log* Log::getInstance()
 {
-        if(logInstance == NULL){
-                logInstance = new Log();
-        }
-        return logInstance;
+	if(logInstance == NULL)
+		logInstance = new Log();
+
+	return logInstance;
 }
 
 void Log::setLogLevel(int inLogLevel)
@@ -27,54 +29,54 @@ void Log::setLogLevel(int inLogLevel)
 
 Log::Log()
 {
-	//semaphore = SDL_CreateSemaphore(1);
-	logLevel = LOG_LOGLEVEL;
-//	logFile.open("log.txt");
+	logLevel = LOG_INFO;
 }
 
-void Log::log(std::string file, std::string function, std::string logThis, int errorlevel){
-	if(errorlevel >= logLevel){
-		if(errorlevel >= LOG_WARNING || errorlevel == LOG_DEBUG){
-			
-			std::cerr
-				<< "[ "
-				<< getErrorLevelName(errorlevel) 
-				<< " ] " 
-				<< logThis 
-			#ifdef DEBUG_VERBOSE
-				<< "\t(" << file << ": " << function << ")"
-			#endif
-				<< std::endl;
-				//std::cout << logThis << std::endl;
-		}else{
-			std::cout << logThis << std::endl;
-		}
-	}
-}
-
-std::string Log::getErrorLevelName(int errorlevel)
+void Log::restrictDebugOutputToFiles(std::vector<std::string> files)
 {
-	switch(errorlevel){
-		case LOG_DEBUG:
-			return "Debug";
-			break;
-		case LOG_VERBOSE:
-			return "Verbose";
-			break;
-		case LOG_INFO:
-			return "Info";
-			break;
-		case LOG_WARNING:
-			return "Warning";
-			break;
-		case LOG_ERROR:
-			return "Error";
-			break;
-		case LOG_FATAL:
-			return "Fatal Error";
-			break;
-		default:
-			return "Unkown";
-			break;
+	for(std::vector<std::string>::iterator it = files.begin(); it != files.end(); it++)
+		if(*it != "")
+			restrictFiles.push_back(*it);
+}
+
+void Log::log(std::string file, std::string function, int line, std::string msg, int severity)
+{
+	// if debug output is restricted to certain files, make sure that the output is from the correct file
+	if(severity == LOG_DEBUG && restrictFiles.size() != 0){
+		bool found = false;
+		for(std::vector<std::string>::iterator it = restrictFiles.begin(); it != restrictFiles.end(); it++){
+			if(*it == file){
+				found = true;
+				break;
+			}
+		}
+
+		if(!found)
+			return;
 	}
+
+	if(severity >= logLevel){
+		std::ostream* out = severity >= LOG_WARNING ? &std::cerr : &std::cout;
+
+		if(severity >= LOG_WARNING || logLevel <= LOG_EXTRA_VERBOSE)
+			*out << "[ " << std::left << std::setw(7) << getSeverityName(severity) << " ] ";
+		
+		if(logLevel <= LOG_EXTRA_VERBOSE){
+			std::stringstream ss;
+			ss << file << ":" << line << " " << function;
+			*out << std::left << std::setw(50) << ss.str();
+		}
+
+		*out << msg << std::endl;
+	}
+}
+
+std::string Log::getSeverityName(int severity)
+{
+	std::string names[] = { "Debug", "Extra", "Verbose", "Info", "Warning", "Error", "Fatal" };
+
+	if(severity >= 0 && severity <= LOG_FATAL)
+		return names[severity];
+
+	return "???";
 }

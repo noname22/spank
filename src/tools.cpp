@@ -15,6 +15,7 @@
 // TODO: no unix dependencies in tools
 #include <string>
 #include <algorithm>
+#include <fstream>
 
 #include "project.h"
 #include "macros.h"
@@ -325,4 +326,35 @@ bool Tools::endsWith(std::string str, std::string suffix)
 		return false;
 
 	return std::mismatch(suffix.rbegin(), suffix.rend(), str.rbegin()).first == suffix.rend();
+}
+
+void Tools::saveTempValue(std::string key, std::string value)
+{
+	std::string filename = FILES->combinePath(makeStrVector(FILES->getTmpDir(), key));
+	LOG("saving tempdata to file: " << filename, LOG_DEBUG);
+	std::ofstream file(filename.c_str());
+	file << value;
+	file.close();
+}
+
+bool Tools::loadTempValue(std::string key, std::string& value)
+{
+	std::string filename = FILES->combinePath(makeStrVector(FILES->getTmpDir(), key));
+
+	if(!FILES->fileExists(filename))
+		return false;
+
+	std::ifstream file(filename.c_str());
+
+	if(file.bad()){
+		LOG("load of temp data failed: " << key, LOG_DEBUG);
+		return false;
+	}
+
+	// TODO handle multiple lines
+	getline(file, value);
+
+	file.close();
+
+	return true;
 }

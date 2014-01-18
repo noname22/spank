@@ -23,6 +23,8 @@ Spank::Spank(int argc, char** argv)
 
 	handleArgs(argc, argv);
 
+	Log::getInstance()->restrictDebugOutputToFiles(PROJECT->getValues("debug-only-files"));
+
 	if(!FILES->createDir(FILES->getHomeDir())){
 		return;
 	}
@@ -42,7 +44,33 @@ Spank::Spank(int argc, char** argv)
 		PROJECT->setValue("spank", spankBin);
 	}
 
-	std::string action = PROJECT->getValueStr("action", 0);
+	// compare against last extraarg and trigger rebuild if they differ, since then it's a new configuration
+	std::string extraarg = PROJECT->getValueStr("extraarg");
+	std::string lastExtraarg;
+
+	if(Tools::loadTempValue("extraarg", lastExtraarg)){
+		LOG("lel: " << lastExtraarg, LOG_INFO);
+		LOG("lal: " << extraarg, LOG_INFO);
+
+		if(extraarg != lastExtraarg){
+			LOG("building with new build configuration, forcing clean", LOG_VERBOSE);
+			PROJECT->setValue("forceclean", "true");
+		}
+
+		if(PROJECT->getValueBool("forceclean")){
+			LOG("Clean forced", LOG_DEBUG);
+			if(COMPILER->clean()){
+				LOG("done cleaning", LOG_VERBOSE);
+			}else{
+				exit(1);
+			}
+		}
+	}
+
+	Tools::saveTempValue("extraarg", extraarg);
+
+	std::string action = PROJECT->getValueStr("action");
+
 	if(action == "compile"){
 		LOG("Action: compile", LOG_DEBUG);
 		if(COMPILER->compile()){
@@ -201,6 +229,8 @@ void Spank::setTemplate(int type)
 		PROJECT->setValue("compilation-strategy", "file-by-file");
 		PROJECT->setValue("stdlibs", "no");
 		PROJECT->setValue("extraarg", "");
+		PROJECT->setValue("forceclean", "false");
+		PROJECT->setValue("debug-only-files", "");
 
 		// set to eg. g++ depending on language
 		PROJECT->setValue("compiler-from-language", "gcc"); 
@@ -433,7 +463,7 @@ void Spank::handleArgs(int argc, const char* const* argv){
 		Config::printSectionList(PROJECT->getSectionList());
 		exit(0);
 	}else{
-		LOGI->setLogLevel(PROJECT->getValueInt("verbosity", 0));
+		Log::getInstance()->setLogLevel(PROJECT->getValueInt("verbosity", 0));
 		
 		printBanner(BANNER_LOGO);
 

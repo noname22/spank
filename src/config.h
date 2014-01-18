@@ -73,6 +73,8 @@ class Config{
 	bool getValueBool(std::string key, int index = 0);
 	int getValueInt(std::string key, int index = 0);
 	int getNumValues(std::string key);
+
+	std::vector<std::string> getValues(std::string key);
 	
 	std::vector<Section> getSectionList();
 

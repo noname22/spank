@@ -10,16 +10,12 @@
 #ifndef LOG_H
 #define LOG_H
 
-//#include <SDL/SDL_thread.h>
-
 #include <string>
 #include <fstream>
 #include <sstream>
 #include <vector>
 
-//#include "settings.h"
-
-enum errorlevels{
+enum Severity {
 	LOG_DEBUG,
 	LOG_EXTRA_VERBOSE,
 	LOG_VERBOSE,
@@ -29,41 +25,26 @@ enum errorlevels{
 	LOG_FATAL
 };
 
-//#define AP_LOG_NUMSTRS
-
-#define LOG_LOGLEVEL LOG_INFO
-
-#define LOGI Log::getInstance()
-
-#define LOGIT(string, errorlevel) LOGI->log(__FILE__, __FUNCTION__, string, errorlevel)
-
-#define LOG(string, errorlevel) do{				\
-	std::ostringstream _tmpStr;					\
-	_tmpStr.str("");							\
-	_tmpStr << string;							\
-	LOGIT(_tmpStr.str(), errorlevel);			\
+#define LOG(_msg, _severity) do{\
+	std::ostringstream _tmpStr;\
+	_tmpStr << _msg;\
+	Log::getInstance()->log(__FILE__, __FUNCTION__, __LINE__, _tmpStr.str(), _severity);\
 } while(0)
 
 #define LASSERT(_v, _msg) if(!(_v)) { LOG(_msg, LOG_FATAL); exit(1); }
 
 class Log{
-	public:
+	Log();
+	static Log* logInstance;
+	int logLevel;
+	std::string getSeverityName(int severity);
 
-	std::ofstream logFile;
-	
-	void log(std::string file, std::string function, std::string logThis, int errorlevel);
+	public:
+	void restrictDebugOutputToFiles(std::vector<std::string> files);
+	void log(std::string file, std::string function, int line, std::string msg, int severity);
 	void setLogLevel(int inLogLevel);
 	static Log* getInstance();
-	//SDL_sem* semaphore;
-	
-	private:
-
-	static Log* logInstance;
-	Log();
-	int logLevel;
-
-	std::string getErrorLevelName(int errorlevel);
+	std::vector<std::string> restrictFiles;
 };
 
 #endif
-
