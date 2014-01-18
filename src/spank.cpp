@@ -49,38 +49,31 @@ Spank::Spank(int argc, char** argv)
 	std::string lastExtraarg;
 
 	if(Tools::loadTempValue("extraarg", lastExtraarg)){
-		LOG("lel: " << lastExtraarg, LOG_INFO);
-		LOG("lal: " << extraarg, LOG_INFO);
+		LOG("last extraarg: " << lastExtraarg, LOG_DEBUG);
+		LOG("current extraarg: " << extraarg, LOG_DEBUG);
 
 		if(extraarg != lastExtraarg){
-			LOG("building with new build configuration, forcing clean", LOG_VERBOSE);
+			LOG("building with new build configuration, forcing clean (if building)", LOG_VERBOSE);
 			PROJECT->setValue("forceclean", "true");
 		}
 	}
 
 	Tools::saveTempValue("extraarg", extraarg);
+
+	std::string action = PROJECT->getValueStr("action");
 		
 	// forcing clean, if requested
-	if(PROJECT->getValueBool("forceclean")){
+	if(PROJECT->getValueBool("forceclean") && (action != "clean" && action != "rebuild")){
 		LOG("Clean forced", LOG_DEBUG);
 		if(COMPILER->clean()){
 			LOG("done cleaning", LOG_VERBOSE);
+			// re-create the tmpdir, since the clean removed it
+			FILES->initializeTmpDir();
 		}else{
 			exit(1);
 		}
 	}
 
-	std::string action = PROJECT->getValueStr("action");
-
-	if(action == "compile"){
-		LOG("Action: compile", LOG_DEBUG);
-		if(COMPILER->compile()){
-			LOG("done compiling", LOG_VERBOSE);
-		}else{
-			exit(1);
-		}
-	} 
-	
 	else if(action == "build"){
 		LOG("Action: build", LOG_DEBUG);
 		if(COMPILER->compile() && COMPILER->link() && postBuild()){
@@ -118,15 +111,6 @@ Spank::Spank(int argc, char** argv)
 		}
 	}
 
-	else if(action == "link"){
-		LOG("Action: link", LOG_DEBUG);
-		if(COMPILER->link() && postBuild()){
-			LOG("done linking", LOG_VERBOSE);
-		}else{
-			exit(1);
-		}
-	}
-	
 	else if(action == "clean"){
 		LOG("Action: clean", LOG_DEBUG);
 		if(COMPILER->clean()){
