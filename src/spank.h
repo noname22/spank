@@ -32,7 +32,7 @@ enum{
 
 class Spank{
 	public:
-		Spank(int argc, char** argv);
+		int run(int argc, char** argv);
 
 	private:
 		void setDefaultConfig();

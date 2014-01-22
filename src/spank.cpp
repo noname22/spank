@@ -17,14 +17,14 @@
 #include "system.h"
 #include "macros.h"
 
-Spank::Spank(int argc, char** argv)
+int Spank::run(int argc, char** argv)
 {
 	handleArgs(argc, argv);
 
 	Log::getInstance()->restrictDebugOutputToFiles(PROJECT->getValues("debug-only-files"));
 
 	if(!FILES->createDir(FILES->getHomeDir())){
-		return;
+		return 1;
 	}
 
 	FILES->initializeTmpDir();
@@ -131,6 +131,8 @@ Spank::Spank(int argc, char** argv)
 	else{
 		printBanner(BANNER_SEEHELP);
 	}
+
+	return 0;
 }
 
 bool Spank::postBuild()

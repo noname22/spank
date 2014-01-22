@@ -11,7 +11,7 @@
 
 int main(int argc, char** argv)
 {	
-	Spank(argc, argv);
-	return 0;
+	Spank spank;
+	return spank.run(argc, argv);
 }
 
