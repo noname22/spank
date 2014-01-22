@@ -64,19 +64,18 @@ int Spank::run(int argc, char** argv)
 		}
 
 		Tools::saveTempValue("extraarg", extraarg);
-
 		std::string action = PROJECT->getValueStr("action");
 			
 		// forcing clean, if requested
 		if(PROJECT->getValueBool("forceclean") && (action != "clean" && action != "rebuild")){
 			LOG("Clean forced", LOG_DEBUG);
-
 			COMPILER->clean();
-
 			FILES->initializeTmpDir();
+			// HACK
+			Tools::saveTempValue("extraarg", extraarg);
 		}
 
-		else if(action == "build"){
+		if(action == "build"){
 			LOG("Action: build", LOG_DEBUG);
 
 			COMPILER->compile();
