@@ -1,6 +1,6 @@
 #!/bin/bash
 
-run() # [directory] [expected output rebuild] [expected output build] [expected output clean]
+run() # [directory] [expected return code rebuild] [expected return code  build] [expected return code  clean]
 {
 	echo -n "  $1 ... "
 	spank=`realpath ../spank`
