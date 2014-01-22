@@ -7,7 +7,7 @@ run() # [directory] [expected output rebuild] [expected output build] [expected 
 
 	cd "$1"
 	
-	$spank --verbosity 4 rebuild
+	$spank --verbosity 4 rebuild > /dev/null 2> /dev/null
 	out=$?
 	if [ "$out" != "$2" ]; then
 		echo ""
@@ -17,7 +17,7 @@ run() # [directory] [expected output rebuild] [expected output build] [expected 
 
 	
 	if [ "$3" != "" ]; then
-		$spank --verbosity 4 build 
+		$spank --verbosity 4 build > /dev/null 2> /dev/null 
 		out=$?
 		if [ "$out" != "$3" ]; then
 			echo ""
@@ -27,7 +27,7 @@ run() # [directory] [expected output rebuild] [expected output build] [expected 
 	fi
 	
 	if [ "$4" != "" ]; then
-		$spank --verbosity 4 clean
+		$spank --verbosity 4 clean > /dev/null 2> /dev/null
 		out=$?
 		if [ "$out" != "$4" ]; then
 			echo ""
@@ -52,5 +52,6 @@ run 'mixed_sources' 0 0 0
 run 'newfile' 0 0 0
 run 'sections' 0 0 0
 run 'vala' 0 0 0
+run 'compilation-failed' 1 1 0
 
 echo "all tests passed"
