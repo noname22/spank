@@ -128,6 +128,16 @@ int Spank::run(int argc, char** argv)
 		}
 	}
 
+	else if(action == "list"){
+		LOG("Action: list", LOG_DEBUG);
+		LOG("", LOG_INFO);
+		std::vector<Section> secs = PROJECT->getSectionList();
+		if(secs.size() == 0)
+			LOG("no build configurations specified in project file(s)", LOG_INFO);
+		else
+			Config::printSectionList(secs);
+	}
+
 	else{
 		printBanner(BANNER_SEEHELP);
 	}
@@ -340,11 +350,13 @@ void Spank::setTemplate(int type)
 		case TEMPLATE_C:
 		case TEMPLATE_C99:
 			LOG("Using template: c", LOG_VERBOSE);
+			PROJECT->setValue("compiler", "$(host_dash)gcc");
 			PROJECT->setValue("template", "c");
 			PROJECT->setValue("compilertype", "gcc");
 			PROJECT->setValue("cflags", "Wall");
 			PROJECT->addValue("cflags", "g");
 			PROJECT->setValue("language", "c");
+			PROJECT->setValue("sources", "*.c");
 			if(type == TEMPLATE_C99)
 				PROJECT->addValue("cflags", "std=c99");
 			break;
@@ -396,18 +408,17 @@ void Spank::printBanner(int banner)
 
 		case BANNER_USAGE:
 			LOG("Usage:", LOG_INFO);
-			LOG("\tspank [-args] <action> [<alt. project file>]", LOG_INFO);
+			LOG("\tspank [-args] <action> [<alt. project file> or <build configuration>]", LOG_INFO);
 			LOG("", LOG_INFO);
 			LOG("\tActions:", LOG_INFO);
-			LOG("\t\tbuild\tCompiles and links a project", LOG_INFO);
-			LOG("\t\trebuild\tCleans, compiles and links a project", LOG_INFO);
-			LOG("\t\tcompile\tCompiles the project sources", LOG_INFO);
-			LOG("\t\tlink\tLinks the compiled files", LOG_INFO);
-			LOG("\t\tclean\tRemoves the target and temp-files", LOG_INFO);
-			LOG("\t\texport\tExports the project to the format given by the 'exporter' argument", LOG_INFO);
-			LOG("\t\t\tValid exporters are: sh (shell script) and makefile (make)", LOG_INFO);
-			LOG("\t\tinstall\tCompiles, links and installs a project", LOG_INFO);
-			LOG("\t\tfake-install\tFakes an install (prints the install procedure to screen instead of doing anything)", LOG_INFO);
+			LOG("\t\tbuild         Compiles and links a project", LOG_INFO);
+			LOG("\t\trebuild       Cleans, compiles and links a project", LOG_INFO);
+			LOG("\t\tclean         Removes the target and temp-files", LOG_INFO);
+			LOG("\t\texport        Exports the project to the format given by the 'exporter' argument", LOG_INFO);
+			LOG("\t\t                Valid exporters are: sh (shell script) and makefile (make)", LOG_INFO);
+			LOG("\t\tinstall       Compiles, links and installs a project", LOG_INFO);
+			LOG("\t\tfake-install  Fakes an install (prints the install procedure to screen instead of doing anything)", LOG_INFO);
+			LOG("\t\tlist          Lists available build configurations", LOG_INFO);
 			LOG("", LOG_INFO);
 			LOG("\tAlternative Project File", LOG_INFO);
 			LOG("\t\t<project file>.spank spank/<project file>.spank is added to the list of files to load", LOG_INFO);

@@ -7,3 +7,4 @@ tests/newfile/newfiletest
 tests/directory with space/space_test
 tests/depends/dep_a/libdep_a.a
 tests/depends/dep_b/libdep_b.a
+tests/sections/program
