@@ -19,10 +19,10 @@
 #include "system.h"
 #include "settings.h"
 #include "tools.h"
+#include "macros.h"
 
-bool CompilerVala::localLink()
+void CompilerVala::localLink()
 {
-	return true;
 }
 
 // link = compile with vala
@@ -88,13 +88,10 @@ std::vector<CList> CompilerVala::compileList(bool rcCheck)
 	return tmp;
 }
 
-bool CompilerVala::localCompile()
+void CompilerVala::localCompile()
 {
 	std::string call = getLdCall(false);
 	LOG("Compiling and linking...", LOG_VERBOSE);
 	LOG(call, LOG_EXTRA_VERBOSE);
-	if(call != "" && system(call.c_str()) == 0){
-		return true;
-	}
-	return false;
+	AssertEx(call != "" && system(call.c_str()) == 0, CompilerException, "Compilation failed");
 }

@@ -18,8 +18,8 @@ class CompilerGcc: public Compiler
 	public:
 	CompilerGcc();
 
-	bool localCompile();
-	bool localLink();
+	void localCompile();
+	void localLink();
 	
 	StrSet getSourceList();
 	std::vector<CList> compileList(bool rcCheck = true);

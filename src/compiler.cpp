@@ -31,15 +31,11 @@ int Compiler::countLines(std::string name)
 	return count;
 }
 
-bool Compiler::link()
+void Compiler::link()
 {
-	if(!localLink()){
-		LOG("Returning error", LOG_ERROR);
-		return false;
-	}
-
+	localLink();
 	LOG("Running post-build scripts", LOG_EXTRA_VERBOSE);
-	return Tools::executeAll("postbuildscript");
+	AssertEx(Tools::executeAll("postbuildscript"), CompilerException, "could not run post-build scripts");
 }
 
 std::string Compiler::genCFlags(std::string filename, bool includeLibs, std::string language)
@@ -48,7 +44,7 @@ std::string Compiler::genCFlags(std::string filename, bool includeLibs, std::str
 	return PROJECT->getValueStr("cflags", hyphen, hyphen, " ");
 }
 
-bool Compiler::buildDeps()
+void Compiler::buildDeps()
 {
 	std::string cfgVal = "depends";
 
@@ -91,34 +87,26 @@ bool Compiler::buildDeps()
 
 		AssertEx(FILES->chdir(currPath) != 0, CompilerException, "couldn't change into directory: " << currPath);
 	}
-
-	return true;
 }
 
-bool Compiler::compile()
+void Compiler::compile()
 {
-	if(!buildDeps())
-		return false;
+	buildDeps();
 
 	LOG("Running pre-build scripts", LOG_EXTRA_VERBOSE);
 
-	if(!Tools::executeAll("prebuildscript"))
-		return false;
-
-	return localCompile();
+	AssertEx(Tools::executeAll("prebuildscript"), CompilerException, "Could not execute pre-build scripts");
+	localCompile();
 }
 
-bool Compiler::clean()
+void Compiler::clean()
 {
 	LOG("Running on clean scripts", LOG_EXTRA_VERBOSE);
-	if(!Tools::executeAll("oncleanscript")){
-		return false;
-	}
-
-	return localClean();
+	AssertEx(Tools::executeAll("oncleanscripts"), CompilerException, "Could not execute on-clean scripts");
+	localClean();
 }
 
-bool Compiler::localClean()
+void Compiler::localClean()
 {
 	std::string tmp = FILES->getTmpDir();
 	std::string target = PROJECT->getValueStr("target", 0);
@@ -130,7 +118,6 @@ bool Compiler::localClean()
 	if(FILES->fileExists(target)){
 		remove(target.c_str());
 	}
-	return true;
 }
 
 bool Compiler::checkLibs()

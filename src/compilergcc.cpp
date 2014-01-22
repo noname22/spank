@@ -452,23 +452,23 @@ bool CompilerGcc::checkLibs()
 	return ret;
 }
 
-bool CompilerGcc::localLink()
+void CompilerGcc::localLink()
 {
 	if(PROJECT->getValueStr("compilation-strategy") == "single-call")
-		return true;
+		return;
 	
 	std::string call = getLdCall(true);
+
 	if(call != ""){
+		// TODO use Tools::execute
 		LOG("Linking...", LOG_VERBOSE);
 		LOG(call, LOG_EXTRA_VERBOSE);
-		if(!system(call.c_str())){
-			return true;
-		}else{
-			return false;
-		}
-	}else{
+
+		AssertEx(system(call.c_str()) == 0, CompilerException, "Linking failed");
+	}
+	
+	else{
 		LOG("Target up to date.", LOG_VERBOSE);
-		return true;
 	}
 }
 	
@@ -487,23 +487,27 @@ std::string CompilerGcc::getPercent(int current, int of)
 	return ret;
 }
 
-bool CompilerGcc::localCompile()
+void CompilerGcc::localCompile()
 {
 	LOG("Checking dependencies...", LOG_VERBOSE);
-	if(!checkLibs())
-		return false;
+	AssertEx(checkLibs(), CompilerException, "Could not locate all dependencies");
 
 	LOG("Preparing...", LOG_VERBOSE);
 	StrSet sources = getSourceList();
 
 	std::string strategy = PROJECT->getValueStr("compilation-strategy");
 
-	if(strategy == "single-call")
-		return compileSingleCall(sources);
-	else if (strategy == "amalgamate")
-		return compileAmalgamate(sources);
+	if(strategy == "single-call"){
+		AssertEx(compileSingleCall(sources), CompilerException, "compilation failed");
+	}
 
-	return compileFileByFile(sources);
+	else if(strategy == "amalgamate"){
+		AssertEx(compileAmalgamate(sources), CompilerException, "compilation failed");
+	}
+
+	else{
+		AssertEx(compileFileByFile(sources), CompilerException, "compilation failed");
+	}
 }
 
 std::string CompilerGcc::guessLanguage(std::string filename)

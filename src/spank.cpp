@@ -70,76 +70,76 @@ int Spank::run(int argc, char** argv)
 		// forcing clean, if requested
 		if(PROJECT->getValueBool("forceclean") && (action != "clean" && action != "rebuild")){
 			LOG("Clean forced", LOG_DEBUG);
-			if(COMPILER->clean()){
-				LOG("done cleaning", LOG_VERBOSE);
-				// re-create the tmpdir, since the clean removed it
-				FILES->initializeTmpDir();
-			}else{
-				exit(1);
-			}
+
+			COMPILER->clean();
+
+			FILES->initializeTmpDir();
 		}
 
 		else if(action == "build"){
 			LOG("Action: build", LOG_DEBUG);
-			if(COMPILER->compile() && COMPILER->link() && postBuild()){
-				LOG("done building", LOG_VERBOSE);
-			}
+
+			COMPILER->compile();
+			COMPILER->link();
+			postBuild();
+
+			LOG("done building", LOG_VERBOSE);
 		}
 		
 		else if(action == "install"){
 			LOG("Action: install", LOG_DEBUG);
+			
 			INSTALLER->setPrefix();
-			if(COMPILER->compile() && COMPILER->link() && postBuild() && INSTALLER->install(false)){
-				LOG("done installing", LOG_VERBOSE);
-			}
+			COMPILER->compile();
+			COMPILER->link();
+			postBuild();
+			INSTALLER->install(false);
+			
+			LOG("done installing", LOG_VERBOSE);
 		}
 
 		else if(action == "fake-install"){
 			LOG("Action: fake-install", LOG_DEBUG);
-			if(INSTALLER->install(true)){
-				LOG("done fake-installing", LOG_VERBOSE);
-			}
+
+			INSTALLER->install(true);
+
+			LOG("done fake-installing", LOG_VERBOSE);
 		}
 
 		else if(action == "rebuild"){
 			LOG("Action: rebuild", LOG_DEBUG);
-			if(COMPILER->clean()){
-				LOG("done cleaning", LOG_VERBOSE);
-				FILES->initializeTmpDir();
+			COMPILER->clean();
+			LOG("done cleaning", LOG_VERBOSE);
 
-				// HACK since clean deletes the temp vars but the project is going to be rebuilt
-				//      the extraarg needs to be resaved, or rebuild -> build with different
-				//      configurations isn't going to trigger force clean
+			FILES->initializeTmpDir();
 
-				Tools::saveTempValue("extraarg", extraarg);
+			// HACK since clean deletes the temp vars but the project is going to be rebuilt
+			//      the extraarg needs to be resaved, or rebuild -> build with different
+			//      configurations isn't going to trigger force clean
 
-				if(COMPILER->compile() && COMPILER->link() && postBuild()){
-					LOG("done rebuilding", LOG_VERBOSE);
-				}else{
-					exit(1);
-				}
-			}else{
-				exit(1);
-			}
+			Tools::saveTempValue("extraarg", extraarg);
+
+			COMPILER->compile();
+			COMPILER->link();
+			postBuild();
+
+			LOG("done rebuilding", LOG_VERBOSE);
 		}
 
 		else if(action == "clean"){
 			LOG("Action: clean", LOG_DEBUG);
-			if(COMPILER->clean()){
-				LOG("done cleaning", LOG_VERBOSE);
-			}else{
-				exit(1);
-			}
+
+			COMPILER->clean();
+
+			LOG("done cleaning", LOG_VERBOSE);
 		}
 
 		else if(action == "export"){
 			LOG("Action: export", LOG_DEBUG);
-			if(EXPORT->exp( PROJECT->getValueStr("exportfile", 0) )){
-				LOG("done exporting", LOG_VERBOSE);
-			}else{
-				LOG("Export failed", LOG_ERROR);
-				exit(1);
-			}
+
+			EXPORT->exp( PROJECT->getValueStr("exportfile", 0) );
+
+			LOG("done exporting", LOG_VERBOSE);
 		}
 
 		else if(action == "list"){
@@ -165,7 +165,7 @@ int Spank::run(int argc, char** argv)
 	return 0;
 }
 
-bool Spank::postBuild()
+void Spank::postBuild()
 {
 	LOG("post build", LOG_DEBUG);
 	if(PROJECT->getValueBool("dep_printinfo")){
@@ -189,8 +189,6 @@ bool Spank::postBuild()
 			PROJECT->getValueStr("lib", " --libs ", " ", "`") <<
 			std::endl;
 	}
-
-	return true;
 }
 
 void Spank::setDefaultConfig()

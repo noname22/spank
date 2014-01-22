@@ -19,12 +19,11 @@
 #include "system.h"
 #include "settings.h"
 #include "tools.h"
+#include "macros.h"
 
-bool CompilerMcs::localLink()
+void CompilerMcs::localLink()
 {
-	return true;
 }
-
 
 bool CompilerMcs::checkTarget(std::string target)
 {
@@ -105,16 +104,12 @@ std::vector<CList> CompilerMcs::compileList(bool rcCheck)
 	return tmp;
 }
 
-bool CompilerMcs::localCompile()
+void CompilerMcs::localCompile()
 {
 	std::string call = getLdCall(false);
 	LOG("Compiling and linking...", LOG_VERBOSE);
 	LOG(call, LOG_EXTRA_VERBOSE);
-	if(call != "" && system(call.c_str()) == 0){
-		return true;
-	}
-	return false;
+
+	// TODO use Tools::exceute()
+	AssertEx(call != "" && system(call.c_str()) == 0, CompilerException, "Compilation failed");
 }
-
-
-

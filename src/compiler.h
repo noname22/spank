@@ -28,15 +28,15 @@ struct CList{
 class Compiler
 {
 	public:
-	bool compile();
-	bool link();
-	bool clean();
+	void compile();
+	void link();
+	void clean();
 
 	virtual std::string genCFlags(std::string filename, bool includeLibs = false, std::string language = "");
 
-	virtual bool localCompile() = 0;
-	virtual bool localLink() = 0;
-	virtual bool localClean();
+	virtual void localCompile() = 0;
+	virtual void localLink() = 0;
+	virtual void localClean();
 
 	virtual ~Compiler();
 
@@ -46,7 +46,7 @@ class Compiler
 	virtual bool checkLibs();
 
 	protected:
-	bool buildDeps();
+	void buildDeps();
 	bool checkExclude(std::string src);
 	int countLines(std::string name); 
 };

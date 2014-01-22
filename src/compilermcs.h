@@ -17,8 +17,8 @@
 class CompilerMcs: public Compiler
 {
 	public:
-		bool localCompile();
-		bool localLink();
+		void localCompile();
+		void localLink();
 		
 		std::vector<CList> compileList(bool rcCheck = true);
 		std::string getLdCall(bool rlCheck);
