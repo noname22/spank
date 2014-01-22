@@ -29,4 +29,10 @@
 		__str = __tmp.str();\
 	}while(0);
 
+// throws an exception of the type _ex if _exp is false, _msg accepts stream input
+#define AssertEx(_exp, _ex, _msg) if(!(_exp)){ FORMSTR(_mstr, _msg); throw _ex(_mstr); }
+
+// throws an exception of the type _ex, _msg accepts stream input
+#define ThrowEx(_ex, _msg) do{ FORMSTR(_mstr, _msg); throw _ex(_mstr); } while(0);
+
 #endif

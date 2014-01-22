@@ -13,7 +13,9 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <stdexcept>
 #include <map>
+
 #include "log.h"
 
 enum{
@@ -25,6 +27,11 @@ enum{
 enum{
 	C_SET,
 	C_ADD
+};
+
+class ConfigException : public std::runtime_error {
+	public:
+	ConfigException(std::string str) : std::runtime_error(str) {}
 };
 
 class ConfigItem {

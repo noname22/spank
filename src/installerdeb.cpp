@@ -91,14 +91,7 @@ bool InstallerDeb::copyFiles()
 		}
 
 		FORMSTR(to, dataDir << "/" << baseTo);
-
-		FILES->createDir(FILES->pathSplit(to).first);
-		if(!FILES->copy(from, to)){
-			LOG("Couldn't copy file: " << from << " to " << to, LOG_FATAL);
-			/* TODO gah, exceptions */
-			exit(1);
-			return false;
-		}
+		AssertEx(FILES->copy(from, to), FilesException, "Could not copy file: " << from << " to " << to);
 
 		fileList.push_back(baseTo);
 	}

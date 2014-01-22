@@ -263,9 +263,8 @@ bool Config::parseSection(std::string line, Section& sec)
 bool Config::loadConfig(std::string filename, std::string section, int depth, std::string lastFilename)
 {
 	if(depth > 255){
-		LOG("Too many includes or too deep build configuration inheritance (255).", LOG_ERROR);
 		LOG("Are you perhaps including two project files from eachother, or is a build configuration directly or indirectly inheriting itself?", LOG_INFO);
-		exit(1);
+		ThrowEx(ConfigException, "Too many includes or too deep build configuration inheritance (255).");
 	}
 
 	std::ifstream in(filename.c_str());
@@ -334,11 +333,8 @@ bool Config::loadConfig(std::string filename, std::string section, int depth, st
 					}
 				}
 
-				if(!done && missingQuote){
-					LOG("Syntax error in project file '" << filename << "', line: " << lineCount, LOG_FATAL);
-					LOG("Unterminated quotation (\")", LOG_FATAL);
-					exit(1);
-				}
+				AssertEx(!(!done && missingQuote), ConfigException, 
+					"Unterminated quotation (\") @ " << filename << ":" << lineCount);
 			}
 
 			if(i == 0){
@@ -353,19 +349,14 @@ bool Config::loadConfig(std::string filename, std::string section, int depth, st
 		if(goodItem){
 			itemsInsertedCount++;
 
-			for(int x=0; x < (int)item.value.size(); x++){
-				if(!addValue(item.key, item.value.at(x), VAR_PROJECT) && configItems.count(item.key) != 0){
-					LOG("Syntax error in project file '" << filename << "', line: " << lineCount, LOG_FATAL);
-					exit(1);
-				}
-			}
+			for(int x=0; x < (int)item.value.size(); x++)
+				AssertEx(!(!addValue(item.key, item.value.at(x), VAR_PROJECT) && configItems.count(item.key) != 0), 
+					ConfigException, "Syntax error in project file @ " << filename << ":" << lineCount);
 
 			if(item.key == "include"){
 				for(std::vector<std::string>::iterator it = item.value.begin(); it != item.value.end(); it++){
-					if(!loadConfig(*it, "default", depth + 1, filename)){
-						LOG("In file: " << filename << ", line: " << lineCount << " couldn't include '" << *it << "'", LOG_FATAL);
-						exit(1);
-					}
+					AssertEx(loadConfig(*it, "default", depth + 1, filename), ConfigException,
+						"Could not include file: " << *it << " @ " << filename << ":" << lineCount);
 				}
 			}
 		}
@@ -373,10 +364,8 @@ bool Config::loadConfig(std::string filename, std::string section, int depth, st
 		parse.clear();		
 	}
 
-	if(itemsInsertedCount == 0){
-		LOG("empty configuration for: " << section, LOG_FATAL);
-		exit(1);
-	}
+	AssertEx(itemsInsertedCount > 0, ConfigException, 
+		"Empty configuration for: " << section << " in file: " << filename);
 
 	return true;
 }
@@ -437,8 +426,7 @@ std::string Config::getValueStr(std::string key, int index, int depth)
 		return env;
 	}
 
-	LOG("Couldn't find config key: '" << key << "'", LOG_FATAL);
-	exit(1);
+	ThrowEx(ConfigException, "Couldn't find config key: '" << key << "'");
 
 	return "";
 }

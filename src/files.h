@@ -14,8 +14,14 @@
 #include <ctime>
 #include <utility>
 #include <vector>
+#include <stdexcept>
 
 #include "project.h"
+
+class FilesException : public std::runtime_error {
+	public:
+	FilesException(std::string str) : std::runtime_error(str) {}
+};
 
 class Files
 {

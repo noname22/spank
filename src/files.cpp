@@ -14,6 +14,7 @@
 #include <cstdlib>
 
 #include "log.h"
+#include "macros.h"
 
 Files::Files()
 {
@@ -77,17 +78,11 @@ void Files::initializeTmpDir()
 	}
 
 	if(!isDir(tmp)){
-		if(!createDir(tmp)){
-			LOG("Couldn't create tmp-dir", LOG_FATAL);
-			exit(1);
-		}
+		AssertEx(createDir(tmp), FilesException, "Could not create temp directory: " << tmp);
 		LOG("created directory: " << tmp, LOG_EXTRA_VERBOSE);
 	}
 
-	if(!genSourceFileList(tmp)){
-		LOG("Couldn't locate all sources files", LOG_FATAL);
-		exit(1);
-	}
+	AssertEx(genSourceFileList(tmp), FilesException, "Could not locate all source files");
 
 	PROJECT->setValue("tmpdir", tmp);
 }

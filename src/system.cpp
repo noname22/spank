@@ -13,7 +13,7 @@
 #include <cstdlib>
 
 #include "project.h"
-
+#include "macros.h"
 
 template<> FilesUnix* SFilesUnix::instance = 0;
 
@@ -37,16 +37,18 @@ Files* System::getFilesInstance()
 Compiler* System::getCompilerInstance()
 {
 	std::string compilertype = PROJECT->getValueStr("compilertype");
-	if(compilertype == "gcc"){ // TODO: less ghetto compiler detection
+
+	if(compilertype == "gcc")
 		return (Compiler*)SCompilerGcc::getInstance();
-	}else if(compilertype == "mcs"){
+
+	else if(compilertype == "mcs")
 		return (Compiler*)SCompilerMcs::getInstance();
-	}else if(compilertype == "vala"){
+
+	else if(compilertype == "vala")
 		return SCompilerVala::getInstance();
-	}else{
-		LOG("Unknown compiler type: '" << compilertype << "'", LOG_FATAL);
-		exit(1);
-	}
+
+	ThrowEx(SystemException, "Unknown compiler type: '" << compilertype << "'");
+	return NULL;
 }
 
 Export* System::getExportInstance()

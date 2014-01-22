@@ -10,6 +10,13 @@
 #ifndef INSTALLER_H
 #define INSTALLER_H
 
+#include <stdexcept>
+
+class InstallerException : public std::runtime_error {
+	public:
+	InstallerException(std::string str) : std::runtime_error(str) {}
+};
+
 class Installer
 {
 	public:

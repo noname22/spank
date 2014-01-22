@@ -68,8 +68,7 @@ bool Compiler::buildDeps()
 		FORMSTR(cmd, PROJECT->getValueStr("spank") << " -verbosity 3 -dep_printinfo yes " << PROJECT->getValueStr("depaction"));
 		if(Tools::execute(cmd, 0, &err, false) != 0){
 			std::cerr << err;
-			LOG("failed to build external project: " << dep, LOG_FATAL);
-			exit(1);
+			ThrowEx(CompilerException, "failed to build external project: " << dep);
 		}
 
 		LOG("err: " << err, LOG_DEBUG);
@@ -90,10 +89,7 @@ bool Compiler::buildDeps()
 			}
 		} 
 
-		if(FILES->chdir(currPath) != 0){
-			LOG("couldn't change into directory: " << currPath, LOG_FATAL);
-			exit(1);
-		}
+		AssertEx(FILES->chdir(currPath) != 0, CompilerException, "couldn't change into directory: " << currPath);
 	}
 
 	return true;

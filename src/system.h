@@ -13,6 +13,8 @@
 #ifndef SYSTEM_H
 #define SYSTEM_H
 
+#include <stdexcept>
+
 #include "singleton.h"
 
 #include "filesunix.h"
@@ -47,6 +49,11 @@ typedef Singleton<ExportMakefile> SExportMakefile; 	// Makefile
 typedef Singleton<Installer> SInstaller;
 typedef Singleton<InstallerUnix> SInstallerUnix;
 typedef Singleton<InstallerDeb> SInstallerDeb;
+
+class SystemException : public std::runtime_error {
+	public:
+	SystemException(std::string str) : std::runtime_error(str) {}
+};
 
 class System
 {

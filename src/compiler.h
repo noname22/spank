@@ -12,6 +12,12 @@
 
 #include <string>
 #include <vector>
+#include <stdexcept>
+
+class CompilerException : public std::runtime_error {
+	public:
+	CompilerException(std::string str) : std::runtime_error(str) {}
+};
 
 struct CList{
 	std::string src;

@@ -8,6 +8,7 @@
 // License: GPLv2
 
 #include <cstdlib>
+#include <stdexcept>
 
 #include "spank.h"
 
@@ -17,129 +18,148 @@
 #include "system.h"
 #include "macros.h"
 
+class SpankException : public std::runtime_error {
+	public:
+	SpankException(std::string str) : std::runtime_error(str) {}
+};
+
 int Spank::run(int argc, char** argv)
 {
-	handleArgs(argc, argv);
+	try { 
+		handleArgs(argc, argv);
 
-	Log::getInstance()->restrictDebugOutputToFiles(PROJECT->getValues("debug-only-files"));
+		Log::getInstance()->restrictDebugOutputToFiles(PROJECT->getValues("debug-only-files"));
 
-	if(!FILES->createDir(FILES->getHomeDir())){
-		return 1;
-	}
-
-	FILES->initializeTmpDir();
-	
-	if(PROJECT->getValueStr("spank") == ""){
-		// if spank is started from a relative path, like ../spank
-		// do a realpath lookup for it to make sure that's the command used
-		// when recursing.
-
-		std::string spankBin = FILES->realpath(argv[0]);
-
-		if(spankBin == "")
-			spankBin = argv[0];			
-
-		PROJECT->setValue("spank", spankBin);
-	}
-
-	// compare against last extraarg and trigger rebuild if they differ, since then it's a new configuration
-	std::string extraarg = PROJECT->getValueStr("extraarg");
-	std::string lastExtraarg;
-
-	if(Tools::loadTempValue("extraarg", lastExtraarg)){
-		LOG("last extraarg: " << lastExtraarg, LOG_DEBUG);
-		LOG("current extraarg: " << extraarg, LOG_DEBUG);
-
-		if(extraarg != lastExtraarg){
-			LOG("building with new build configuration, forcing clean (if building)", LOG_VERBOSE);
-			PROJECT->setValue("forceclean", "true");
+		if(!FILES->createDir(FILES->getHomeDir())){
+			return 1;
 		}
-	}
 
-	Tools::saveTempValue("extraarg", extraarg);
-
-	std::string action = PROJECT->getValueStr("action");
+		FILES->initializeTmpDir();
 		
-	// forcing clean, if requested
-	if(PROJECT->getValueBool("forceclean") && (action != "clean" && action != "rebuild")){
-		LOG("Clean forced", LOG_DEBUG);
-		if(COMPILER->clean()){
-			LOG("done cleaning", LOG_VERBOSE);
-			// re-create the tmpdir, since the clean removed it
-			FILES->initializeTmpDir();
-		}else{
-			exit(1);
-		}
-	}
+		if(PROJECT->getValueStr("spank") == ""){
+			// if spank is started from a relative path, like ../spank
+			// do a realpath lookup for it to make sure that's the command used
+			// when recursing.
 
-	else if(action == "build"){
-		LOG("Action: build", LOG_DEBUG);
-		if(COMPILER->compile() && COMPILER->link() && postBuild()){
-			LOG("done building", LOG_VERBOSE);
-		}
-	}
-	
-	else if(action == "install"){
-		LOG("Action: install", LOG_DEBUG);
-		INSTALLER->setPrefix();
-		if(COMPILER->compile() && COMPILER->link() && postBuild() && INSTALLER->install(false)){
-			LOG("done installing", LOG_VERBOSE);
-		}
-	}
+			std::string spankBin = FILES->realpath(argv[0]);
 
-	else if(action == "fake-install"){
-		LOG("Action: fake-install", LOG_DEBUG);
-		if(INSTALLER->install(true)){
-			LOG("done fake-installing", LOG_VERBOSE);
-		}
-	}
+			if(spankBin == "")
+				spankBin = argv[0];			
 
-	else if(action == "rebuild"){
-		LOG("Action: rebuild", LOG_DEBUG);
-		if(COMPILER->clean()){
-			LOG("done cleaning", LOG_VERBOSE);
-			FILES->initializeTmpDir();
-			if(COMPILER->compile() && COMPILER->link() && postBuild()){
-				LOG("done rebuilding", LOG_VERBOSE);
+			PROJECT->setValue("spank", spankBin);
+		}
+
+		// compare against last extraarg and trigger rebuild if they differ, since then it's a new configuration
+		std::string extraarg = PROJECT->getValueStr("extraarg");
+		std::string lastExtraarg;
+
+		if(Tools::loadTempValue("extraarg", lastExtraarg)){
+			LOG("last extraarg: " << lastExtraarg, LOG_DEBUG);
+			LOG("current extraarg: " << extraarg, LOG_DEBUG);
+
+			if(extraarg != lastExtraarg){
+				LOG("building with new build configuration, forcing clean (if building)", LOG_VERBOSE);
+				PROJECT->setValue("forceclean", "true");
+			}
+		}
+
+		Tools::saveTempValue("extraarg", extraarg);
+
+		std::string action = PROJECT->getValueStr("action");
+			
+		// forcing clean, if requested
+		if(PROJECT->getValueBool("forceclean") && (action != "clean" && action != "rebuild")){
+			LOG("Clean forced", LOG_DEBUG);
+			if(COMPILER->clean()){
+				LOG("done cleaning", LOG_VERBOSE);
+				// re-create the tmpdir, since the clean removed it
+				FILES->initializeTmpDir();
 			}else{
 				exit(1);
 			}
-		}else{
-			exit(1);
+		}
+
+		else if(action == "build"){
+			LOG("Action: build", LOG_DEBUG);
+			if(COMPILER->compile() && COMPILER->link() && postBuild()){
+				LOG("done building", LOG_VERBOSE);
+			}
+		}
+		
+		else if(action == "install"){
+			LOG("Action: install", LOG_DEBUG);
+			INSTALLER->setPrefix();
+			if(COMPILER->compile() && COMPILER->link() && postBuild() && INSTALLER->install(false)){
+				LOG("done installing", LOG_VERBOSE);
+			}
+		}
+
+		else if(action == "fake-install"){
+			LOG("Action: fake-install", LOG_DEBUG);
+			if(INSTALLER->install(true)){
+				LOG("done fake-installing", LOG_VERBOSE);
+			}
+		}
+
+		else if(action == "rebuild"){
+			LOG("Action: rebuild", LOG_DEBUG);
+			if(COMPILER->clean()){
+				LOG("done cleaning", LOG_VERBOSE);
+				FILES->initializeTmpDir();
+
+				// HACK since clean deletes the temp vars but the project is going to be rebuilt
+				//      the extraarg needs to be resaved, or rebuild -> build with different
+				//      configurations isn't going to trigger force clean
+
+				Tools::saveTempValue("extraarg", extraarg);
+
+				if(COMPILER->compile() && COMPILER->link() && postBuild()){
+					LOG("done rebuilding", LOG_VERBOSE);
+				}else{
+					exit(1);
+				}
+			}else{
+				exit(1);
+			}
+		}
+
+		else if(action == "clean"){
+			LOG("Action: clean", LOG_DEBUG);
+			if(COMPILER->clean()){
+				LOG("done cleaning", LOG_VERBOSE);
+			}else{
+				exit(1);
+			}
+		}
+
+		else if(action == "export"){
+			LOG("Action: export", LOG_DEBUG);
+			if(EXPORT->exp( PROJECT->getValueStr("exportfile", 0) )){
+				LOG("done exporting", LOG_VERBOSE);
+			}else{
+				LOG("Export failed", LOG_ERROR);
+				exit(1);
+			}
+		}
+
+		else if(action == "list"){
+			LOG("Action: list", LOG_DEBUG);
+			LOG("", LOG_INFO);
+			std::vector<Section> secs = PROJECT->getSectionList();
+			if(secs.size() == 0)
+				LOG("no build configurations specified in project file(s)", LOG_INFO);
+			else
+				Config::printSectionList(secs);
+		}
+
+		else{
+			printBanner(BANNER_SEEHELP);
 		}
 	}
 
-	else if(action == "clean"){
-		LOG("Action: clean", LOG_DEBUG);
-		if(COMPILER->clean()){
-			LOG("done cleaning", LOG_VERBOSE);
-		}else{
-			exit(1);
-		}
-	}
-
-	else if(action == "export"){
-		LOG("Action: export", LOG_DEBUG);
-		if(EXPORT->exp( PROJECT->getValueStr("exportfile", 0) )){
-			LOG("done exporting", LOG_VERBOSE);
-		}else{
-			LOG("Export failed", LOG_ERROR);
-			exit(1);
-		}
-	}
-
-	else if(action == "list"){
-		LOG("Action: list", LOG_DEBUG);
-		LOG("", LOG_INFO);
-		std::vector<Section> secs = PROJECT->getSectionList();
-		if(secs.size() == 0)
-			LOG("no build configurations specified in project file(s)", LOG_INFO);
-		else
-			Config::printSectionList(secs);
-	}
-
-	else{
-		printBanner(BANNER_SEEHELP);
+	catch (std::runtime_error ex) {
+		LOG("failed: " << ex.what(), LOG_FATAL);
+		return 1;
 	}
 
 	return 0;
@@ -453,132 +473,128 @@ void Spank::printBanner(int banner)
 void Spank::handleArgs(int argc, const char* const* argv){
 	setDefaultConfig();
 
-	if(!PROJECT->fromCmdLine(argc, argv)){
-		printBanner(BANNER_LOGO);
-		exit(1);
-	}else if(PROJECT->getValueBool("help")){
+	AssertEx(PROJECT->fromCmdLine(argc, argv), SpankException, "could not parse command line");
+
+	if(PROJECT->getValueBool("help")){
 		printBanner(BANNER_LOGO);
 		printBanner(BANNER_USAGE);
 		exit(0);
-	}else if(PROJECT->getValueBool("showbuildconfigs")){
+	}
+
+	if(PROJECT->getValueBool("showbuildconfigs")){
 		Config::printSectionList(PROJECT->getSectionList());
 		exit(0);
-	}else{
-		Log::getInstance()->setLogLevel(PROJECT->getValueInt("verbosity", 0));
-		
-		printBanner(BANNER_LOGO);
+	}
 
-		// determine section
-		std::string section = "default";
-		std::string extraarg = PROJECT->getValueStr("extraarg");
-		std::vector<Section> secs = PROJECT->getSectionList();
-
-		if(extraarg != ""){
-			// if the default project doesn't contain the section specified as an extra argument
-			// try old style loading of extra project files
-			if(Config::listHasSection(secs, extraarg)){
-				section = extraarg;
-			}else{
-				FORMSTR(tmp2, extraarg << ".spank");
-				PROJECT->setValue("project", tmp2, VAR_CMDLINE); 
-				FORMSTR(tmp3, "spank/" << extraarg << ".spank");
-				PROJECT->addValue("project", tmp3, VAR_CMDLINE); 
-			
-				// reload sections since projects were added
-				secs = PROJECT->getSectionList();
-			}
-		}
-
-		if(secs.size() > 0){
-			if(section == "default"){
-				Section dfl = Config::getDefaultSectionFromList(secs);
-
-				if(dfl.name == ""){
-					LOG("no build configuration specified", LOG_FATAL);
-					LOG("no default build configuration in project file(s), please specify one explicitly", LOG_INFO);
-					Config::printSectionList(secs);
-					exit(1);
-				}
-
-				section = dfl.name;
-			}
-
-			if(!Config::listHasSection(secs, section)){
-				LOG("no such build configuration: " << section, LOG_FATAL);
-				Config::printSectionList(secs);
-				exit(1);
-			}
-		}
-
-		LOG("using build configuration: " << section, LOG_VERBOSE);
-
-		bool noConfig = true;
-
-		for(int i=0; i < PROJECT->getNumValues("config"); i++){
-			PROJECT->loadConfig(PROJECT->getValueStr("config", i));
-		}
+	Log::getInstance()->setLogLevel(PROJECT->getValueInt("verbosity", 0));
 	
-		for(int i=0; i < PROJECT->getNumValues("project"); i++){
-			if(PROJECT->loadConfig(PROJECT->getValueStr("project", i), section)){
-				noConfig = false;
-			}
-		}
+	printBanner(BANNER_LOGO);
 
-		std::string tmpl = PROJECT->getValueStr("template", 0);
+	// determine section
+	std::string section = "default";
+	std::string extraarg = PROJECT->getValueStr("extraarg");
+	std::vector<Section> secs = PROJECT->getSectionList();
 
-		if(tmpl == "c++" || tmpl == "cpp"){
-			setTemplate(TEMPLATE_CPP);
-		}else if(tmpl == "c++0x" || tmpl == "c++11" || tmpl == "cpp0x" || tmpl == "cpp11"){
-			setTemplate(TEMPLATE_CPP11);
-		}else if(tmpl == "c"){
-			setTemplate(TEMPLATE_C);
-		}else if(tmpl == "c99"){
-			setTemplate(TEMPLATE_C99);
-		}else if(tmpl == "cs" || tmpl == "csharp"){
-			setTemplate(TEMPLATE_CS);
-		}else if(tmpl == "vala"){
-			setTemplate(TEMPLATE_VALA);
+	if(extraarg != ""){
+		// if the default project doesn't contain the section specified as an extra argument
+		// try old style loading of extra project files
+		if(Config::listHasSection(secs, extraarg)){
+			section = extraarg;
 		}else{
-			setTemplate(TEMPLATE_GCC_AUTO);
-		}
-
-		// Set the target prefix and suffix depnding on target type	
-		std::string targetType = PROJECT->getValueStr("targettype");
-		if(targetType == "lib-static"){
-			PROJECT->setValue("target_prefix", "$(lib-static_prefix)");
-			PROJECT->setValue("target_suffix", "$(lib-static_suffix)");
-		}
-		else if(targetType == "lib-shared"){
-			PROJECT->setValue("target_prefix", "$(lib-shared_prefix)");
-			PROJECT->setValue("target_suffix", "$(lib-shared_suffix)");
-		}
-
-		// predefined platforms	(other than the default: posix)
-		std::string targetPlatform = PROJECT->getValueStr("target_platform");
-
-		if(targetPlatform == "mingw32" || targetPlatform == "mingw64"){
-			PROJECT->setValue("host", targetPlatform == "mingw32" ? "i686-w64-mingw32" : "x86_64-w64-mingw32");
-			PROJECT->setValue("binary_prefix", "");
-			PROJECT->setValue("binary_suffix", targetPlatform == "mingw32" ? ".exe" : "_64.exe");
-			PROJECT->setValue("lib-shared_prefix", "");
-			PROJECT->setValue("lib-shared_suffix", ".dll");
-			PROJECT->setValue("inst_prefix", "/usr/$(host)/");
-		}
-		else if(targetPlatform != "posix"){
-			LOG("unknown target platform: '" << targetPlatform << "', assuming posix", LOG_WARNING);
-		}
-
-		if(PROJECT->getValueStr("host") != ""){
-			PROJECT->setValue("host_dash", "$(host)-");
-		}
-
-		if(PROJECT->getValueBool("showconfig", 0)){
-			PROJECT->dumpConfig();
-		}
+			FORMSTR(tmp2, extraarg << ".spank");
+			PROJECT->setValue("project", tmp2, VAR_CMDLINE); 
+			FORMSTR(tmp3, "spank/" << extraarg << ".spank");
+			PROJECT->addValue("project", tmp3, VAR_CMDLINE); 
 		
-		if(noConfig){
-			LOG("No project file found.", LOG_ERROR);
-			exit(1);
+			// reload sections since projects were added
+			secs = PROJECT->getSectionList();
 		}
 	}
+
+	if(secs.size() > 0){
+		if(section == "default"){
+			Section dfl = Config::getDefaultSectionFromList(secs);
+
+			if(dfl.name == ""){
+				LOG("no default build configuration in project file(s), please specify one explicitly", LOG_INFO);
+				Config::printSectionList(secs);
+				ThrowEx(SpankException, "no build configuration specified");
+			}
+
+			section = dfl.name;
+		}
+
+		if(!Config::listHasSection(secs, section)){
+			Config::printSectionList(secs);
+			ThrowEx(SpankException, "no such build configuration: " << section);
+		}
+	}
+
+	LOG("using build configuration: " << section, LOG_VERBOSE);
+
+	bool noConfig = true;
+
+	for(int i=0; i < PROJECT->getNumValues("config"); i++){
+		PROJECT->loadConfig(PROJECT->getValueStr("config", i));
+	}
+
+	for(int i=0; i < PROJECT->getNumValues("project"); i++){
+		if(PROJECT->loadConfig(PROJECT->getValueStr("project", i), section)){
+			noConfig = false;
+		}
+	}
+
+	std::string tmpl = PROJECT->getValueStr("template", 0);
+
+	if(tmpl == "c++" || tmpl == "cpp"){
+		setTemplate(TEMPLATE_CPP);
+	}else if(tmpl == "c++0x" || tmpl == "c++11" || tmpl == "cpp0x" || tmpl == "cpp11"){
+		setTemplate(TEMPLATE_CPP11);
+	}else if(tmpl == "c"){
+		setTemplate(TEMPLATE_C);
+	}else if(tmpl == "c99"){
+		setTemplate(TEMPLATE_C99);
+	}else if(tmpl == "cs" || tmpl == "csharp"){
+		setTemplate(TEMPLATE_CS);
+	}else if(tmpl == "vala"){
+		setTemplate(TEMPLATE_VALA);
+	}else{
+		setTemplate(TEMPLATE_GCC_AUTO);
+	}
+
+	// Set the target prefix and suffix depnding on target type	
+	std::string targetType = PROJECT->getValueStr("targettype");
+	if(targetType == "lib-static"){
+		PROJECT->setValue("target_prefix", "$(lib-static_prefix)");
+		PROJECT->setValue("target_suffix", "$(lib-static_suffix)");
+	}
+	else if(targetType == "lib-shared"){
+		PROJECT->setValue("target_prefix", "$(lib-shared_prefix)");
+		PROJECT->setValue("target_suffix", "$(lib-shared_suffix)");
+	}
+
+	// predefined platforms	(other than the default: posix)
+	std::string targetPlatform = PROJECT->getValueStr("target_platform");
+
+	if(targetPlatform == "mingw32" || targetPlatform == "mingw64"){
+		PROJECT->setValue("host", targetPlatform == "mingw32" ? "i686-w64-mingw32" : "x86_64-w64-mingw32");
+		PROJECT->setValue("binary_prefix", "");
+		PROJECT->setValue("binary_suffix", targetPlatform == "mingw32" ? ".exe" : "_64.exe");
+		PROJECT->setValue("lib-shared_prefix", "");
+		PROJECT->setValue("lib-shared_suffix", ".dll");
+		PROJECT->setValue("inst_prefix", "/usr/$(host)/");
+	}
+	else if(targetPlatform != "posix"){
+		LOG("unknown target platform: '" << targetPlatform << "', assuming posix", LOG_WARNING);
+	}
+
+	if(PROJECT->getValueStr("host") != ""){
+		PROJECT->setValue("host_dash", "$(host)-");
+	}
+
+	if(PROJECT->getValueBool("showconfig", 0)){
+		PROJECT->dumpConfig();
+	}
+
+	AssertEx(!noConfig, SpankException, "No project file found");
 }

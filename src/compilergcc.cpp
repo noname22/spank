@@ -79,10 +79,7 @@ std::vector<CList> CompilerGcc::compileList(bool rcCheck)
 	}
 
 	// TODO HACK
-	if(list.size() == 0){
-		LOG("Nothing to do.", LOG_INFO);
-		exit(0);
-	}
+	AssertEx(list.size() > 0, CompilerException, "Nothing to do");
 
 	return cList;	
 }
@@ -113,34 +110,27 @@ void CompilerGcc::setIncludePaths(std::string filename)
 	std::stringstream s(out);
 
 	int panic = 0x10000, c = 0, i = -1;
-	try{
-		// Read include directories
-		for(;;){
-			if(c++ > panic){ 
-				LOG("No End of search list found after " << c << " lines, bailing." , LOG_EXTRA_VERBOSE);
-				throw std::runtime_error("Unexpected output from the preprocessor");
-			}
 
-			std::string line = Tools::getLineStream(s);
+	// Read include directories
+	for(;;){
+		if(c++ > panic){ 
+			LOG("No End of search list found after " << c << " lines, bailing." , LOG_EXTRA_VERBOSE);
+			throw std::runtime_error("Unexpected output from the preprocessor");
+		}
 
-			LOG(line, LOG_DEBUG);
+		std::string line = Tools::getLineStream(s);
 
-			if(line == "#include <...> search starts here:" || line == "#include \"...\" search starts here:"){ i++; continue; }
-			if(line == "End of search list."){ break; }
-			if(i >= 0){ incPaths[i].push_back(line.substr(1)); }
-			
-			if(!s.good()){
-				throw std::runtime_error("EOF without End of search list");
-			}
+		LOG(line, LOG_DEBUG);
+
+		if(line == "#include <...> search starts here:" || line == "#include \"...\" search starts here:"){ i++; continue; }
+		if(line == "End of search list."){ break; }
+		if(i >= 0){ incPaths[i].push_back(line.substr(1)); }
+		
+		if(!s.good()){
+			throw CompilerException("EOF without End of search list");
 		}
 	}
 	
-	catch(std::runtime_error e)
-	{
-		LOG(e.what(), LOG_FATAL);
-		exit(1);
-	}
-
 	LOG("Found include paths: ", LOG_DEBUG);
 	for(i = 0; i < 2; i++){
 		for(StrVec::iterator it = incPaths[i].begin(); it != incPaths[i].end(); it++){
@@ -624,10 +614,7 @@ bool CompilerGcc::compileAmalgamate(StrSet list)
 	LASSERT(language == "c++" || language == "c", "Amalgamating compilation only works with c and c++");
 	
 	// TODO HACK
-	if(list.size() == 0){
-		LOG("Nothing to do.", LOG_INFO);
-		exit(0);
-	}
+	AssertEx(list.size() > 0, CompilerException, "Nothing to do.");
 	
 	std::ofstream objectList(FILES->combinePath(Tools::makeStrVector(FILES->getTmpDir(), "objectlist")).c_str());
 	std::string object = FILES->combinePath(Tools::makeStrVector(FILES->getTmpDir(), "all_sources.o"));
