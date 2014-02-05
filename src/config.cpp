@@ -138,9 +138,10 @@ void Config::dumpConfig()
 				tmp << ", ";
 
 			tmp << "\"" << *vit << "\"";
-			LOG(tmp.str(), LOG_INFO);
 			first = false;
 		}
+
+		LOG(tmp.str(), LOG_INFO);
 	}
 
 	LOG("", LOG_INFO);
