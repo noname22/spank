@@ -102,7 +102,7 @@ void Compiler::compile()
 void Compiler::clean()
 {
 	LOG("Running on clean scripts", LOG_EXTRA_VERBOSE);
-	AssertEx(Tools::executeAll("oncleanscripts"), CompilerException, "Could not execute on-clean scripts");
+	AssertEx(Tools::executeAll("oncleanscript"), CompilerException, "Could not execute on-clean scripts");
 	localClean();
 }
 
