@@ -186,7 +186,9 @@ bool Config::setAddValue(int action, std::string key, std::string value, int typ
 			configItems[key].value.push_back(value);
 			return true;
 		}
-	}else{
+	}
+	
+	else{
 		if(type == VAR_INTERNAL || deleted || key.substr(0, 5) == "user_"){
 			ConfigItem tmp;
 			tmp.value.push_back(value);
@@ -194,12 +196,14 @@ bool Config::setAddValue(int action, std::string key, std::string value, int typ
 			tmp.type = type;
 			configItems[key] = tmp;
 			return true;
-		}else{
+		}
+		
+		else{
 			LOG("Unknown option: '" << key << "'", LOG_ERROR);
 		}
 	}
 
-	return false;
+	return exists;
 }
 		
 bool Config::addValue(std::string key, std::string value, int type)

@@ -112,7 +112,7 @@ bool FilesUnix::find(std::string what, std::string where, std::string result)
 }
 
 
-bool FilesUnix::genSourceFileList(std::string dir)
+void FilesUnix::genSourceFileList(std::string dir)
 {
 	LOG("creating a filelist", LOG_DEBUG);
 	std::string filelist = dir;
@@ -127,18 +127,18 @@ bool FilesUnix::genSourceFileList(std::string dir)
 				out << sources << std::endl;
 				out.close();
 			}else{
-				LOG("Can't find: " << sources, LOG_ERROR);
-				return false;
+				FORMSTR(msg, "Can't find: " << sources);
+				throw FilesException(msg);
 			}
 		}else{
 			for(int i=0; i < PROJECT->getNumValues("sourcedir"); i++){
 				if(!find(sources, PROJECT->getValueStr("sourcedir", i), filelist)){
-					return false;
+					FORMSTR(msg, "Could not locate all source files in directory: " << PROJECT->getValueStr("sourcedir", i));
+					throw FilesException(msg);
 				}
 			}
 		}
 	}
-	return true;
 }
 
 int FilesUnix::isDir (std::string path)

@@ -28,7 +28,7 @@ class Files
 	public:
 		// Pure virtual functions
 
-		virtual bool genSourceFileList(std::string dir) = 0;
+		virtual void genSourceFileList(std::string dir) = 0;
 		
 		virtual time_t getDate(std::string file) = 0;
 		virtual bool fileExists(std::string file) = 0;

@@ -82,8 +82,6 @@ void Files::initializeTmpDir()
 		LOG("created directory: " << tmp, LOG_EXTRA_VERBOSE);
 	}
 
-	AssertEx(genSourceFileList(tmp), FilesException, "Could not locate all source files");
-
 	PROJECT->setValue("tmpdir", tmp);
 }
 

@@ -96,6 +96,7 @@ void Compiler::compile()
 	LOG("Running pre-build scripts", LOG_EXTRA_VERBOSE);
 
 	AssertEx(Tools::executeAll("prebuildscript"), CompilerException, "Could not execute pre-build scripts");
+	FILES->genSourceFileList(PROJECT->getValueStr("tmpdir"));
 	localCompile();
 }
 
