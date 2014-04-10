@@ -53,5 +53,6 @@ run 'newfile' 0 0 0
 run 'sections' 0 0 0
 run 'vala' 0 0 0
 run 'compilation-failed' 1 1 0
+run 'unknown-option' 1 1 1
 
 echo "all tests passed"

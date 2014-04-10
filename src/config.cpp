@@ -199,7 +199,7 @@ bool Config::setAddValue(int action, std::string key, std::string value, int typ
 		}
 		
 		else{
-			LOG("Unknown option: '" << key << "'", LOG_ERROR);
+			ThrowEx(ConfigException, "Unknown option in project file: '" << key << "'");
 		}
 	}
 
