@@ -595,8 +595,11 @@ std::string CompilerGcc::genCFlags(std::string filename, bool includeLibs, std::
 	flags << "-x " << language << " ";
 
 	if(PROJECT->getNumValues("lib")){
-		flags << " `" << PROJECT->getValueStr("pkg-config") <<
-			PROJECT->getValueStr("lib", includeLibs ? " --cflags --libs " : " --cflags ", " ", "`");
+		flags << 
+			" `" << 
+			PROJECT->getValueStr("pkg-config") <<
+			PROJECT->getValueStr("lib", includeLibs ? " --cflags --libs " : " --cflags ", " ") <<
+			" `";
 	}
 	
 	if(PROJECT->getNumValues("lib-static")){

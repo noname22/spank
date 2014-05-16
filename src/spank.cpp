@@ -176,17 +176,37 @@ void Spank::postBuild()
 		std::string sep = PROJECT->getValueBool("addhyphen") ? "-" : " ", prefix;
 		prefix.append(sep);
 
+		// cflags
 		std::cerr << "cflags: " << PROJECT->getValueStr("dep_cflags", prefix, sep, " ") << 
-			PROJECT->getValueStr("dep_extra_cflags", prefix, sep, " ") <<
-			" `" << PROJECT->getValueStr("pkg-config") <<
-			PROJECT->getValueStr("lib", " --cflags ", " ", "`") <<
-			std::endl;
+			PROJECT->getValueStr("dep_extra_cflags", prefix, sep, " ");
 
+		if(PROJECT->getNumValues("lib") > 0){
+			std::cerr << " `" << PROJECT->getValueStr("pkg-config") <<
+				PROJECT->getValueStr("lib", " --cflags ", " ") << "` ";
+		}
+		
+		if(PROJECT->getNumValues("lib-static") > 0){
+			std::cerr << " `" << PROJECT->getValueStr("pkg-config") <<
+				PROJECT->getValueStr("lib-static", " --cflags ", " ") << "` ";
+		}
+
+		std::cerr << std::endl;
+
+		// ldflags
 		std::cerr << "ldflags: " << PROJECT->getValueStr("dep_ldflags", prefix, sep, " ") << 
-			PROJECT->getValueStr("dep_extra_ldflags", prefix, sep, " ") << 
-			" `" << PROJECT->getValueStr("pkg-config") <<
-			PROJECT->getValueStr("lib", " --libs ", " ", "`") <<
-			std::endl;
+			PROJECT->getValueStr("dep_extra_ldflags", prefix, sep, " ");
+			
+		if(PROJECT->getNumValues("lib") > 0){
+			std::cerr << " `" << PROJECT->getValueStr("pkg-config") <<
+				PROJECT->getValueStr("lib", " --libs ", " ") << "` ";
+		}
+		
+		if(PROJECT->getNumValues("lib-static") > 0){
+			std::cerr << " `" << PROJECT->getValueStr("pkg-config") <<
+				PROJECT->getValueStr("lib-static", " --libs ", " ") << "` ";
+		}
+
+		std::cerr << std::endl;
 	}
 }
 
