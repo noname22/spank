@@ -286,7 +286,10 @@ void Spank::setDefaultConfig()
 	PROJECT->addValue("prebuildscript", "");
 	PROJECT->addValue("postbuildscript", "");
 	PROJECT->addValue("oncleanscript", "");
-	PROJECT->addValue("version", "0.1");
+	PROJECT->addValue("version", "$(version_current).$(version_revision).$(version_age)");
+	PROJECT->addValue("version_current", "0");
+	PROJECT->addValue("version_revision", "1");
+	PROJECT->addValue("version_age", "0");
 	PROJECT->addValue("name", "untitled_project");
 	PROJECT->addValue("homepage", "none");
 	PROJECT->addValue("email", "nomail@example.com");
@@ -305,7 +308,7 @@ void Spank::setDefaultConfig()
 	PROJECT->setValue("binary_prefix", "");
 	PROJECT->setValue("binary_suffix", "");
 	PROJECT->setValue("lib-shared_prefix", "lib");
-	PROJECT->setValue("lib-shared_suffix", ".so.0");
+	PROJECT->setValue("lib-shared_suffix", ".so");
 	PROJECT->setValue("lib-static_prefix", "lib");
 	PROJECT->setValue("lib-static_suffix", ".a");
 
