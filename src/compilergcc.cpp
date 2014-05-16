@@ -379,27 +379,29 @@ std::string CompilerGcc::getLdCall(bool rlCheck)
 		}
 	}
 
-	if(PROJECT->getValueBool("addhyphen")){
-		call << " " << PROJECT->getValueStr("ldflags", "-", " -", " ");
-	}else{
-		call << " " << PROJECT->getValueStr("ldflags", " ", " ", " ");
-	}
+	if(targettype != "lib-static"){
+		if(PROJECT->getValueBool("addhyphen")){
+			call << " " << PROJECT->getValueStr("ldflags", "-", " -", " ");
+		}else{
+			call << " " << PROJECT->getValueStr("ldflags", " ", " ", " ");
+		}
 
-	if(targettype != "lib-static" && PROJECT->getNumValues("lib"))
-		call << "`" << PROJECT->getValueStr("pkg-config") << PROJECT->getValueStr("lib", " --libs ", " ", "` ");
-	
-	if(targettype != "lib-static" && PROJECT->getNumValues("lib-static"))
-		call << "`" << PROJECT->getValueStr("pkg-config") << PROJECT->getValueStr("lib-static", " --static --libs ", " ", "` ");
+		if(PROJECT->getNumValues("lib"))
+			call << "`" << PROJECT->getValueStr("pkg-config") << PROJECT->getValueStr("lib", " --libs ", " ", "` ");
+		
+		if(PROJECT->getNumValues("lib-static"))
+			call << "`" << PROJECT->getValueStr("pkg-config") << PROJECT->getValueStr("lib-static", " --static --libs ", " ", "` ");
 
-	call << PROJECT->getValueStr("_dep_ldflags", " ", " ", " ", true); 
-	
-	if(targettype == "binary"){
-		// TODO refacture so that getLdCall could get passed a list of the source files rather than reading them again from the list
-		StrSet sources = getSourceList();
-		StrSet stdlibs = getStdLibs(sources);
+		call << PROJECT->getValueStr("_dep_ldflags", " ", " ", " ", true); 
+		
+		if(targettype == "binary"){
+			// TODO refacture so that getLdCall could get passed a list of the source files rather than reading them again from the list
+			StrSet sources = getSourceList();
+			StrSet stdlibs = getStdLibs(sources);
 
-		for(StrSet::iterator it = stdlibs.begin(); it != stdlibs.end(); it++)
-			call << " " << *it;
+			for(StrSet::iterator it = stdlibs.begin(); it != stdlibs.end(); it++)
+				call << " " << *it;
+		}
 	}
 
 	LOG("ldcall: " << call.str(), LOG_DEBUG);
@@ -595,11 +597,8 @@ std::string CompilerGcc::genCFlags(std::string filename, bool includeLibs, std::
 	flags << "-x " << language << " ";
 
 	if(PROJECT->getNumValues("lib")){
-		flags << 
-			" `" << 
-			PROJECT->getValueStr("pkg-config") <<
-			PROJECT->getValueStr("lib", includeLibs ? " --cflags --libs " : " --cflags ", " ") <<
-			" `";
+		flags << " `" << PROJECT->getValueStr("pkg-config") <<
+			PROJECT->getValueStr("lib", includeLibs ? " --cflags --libs " : " --cflags ", " ", "`");
 	}
 	
 	if(PROJECT->getNumValues("lib-static")){
