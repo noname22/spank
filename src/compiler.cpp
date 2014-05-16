@@ -85,7 +85,7 @@ void Compiler::buildDeps()
 			}
 		} 
 
-		AssertEx(FILES->chdir(currPath) != 0, CompilerException, "couldn't change into directory: " << currPath);
+		AssertEx(FILES->chdir(currPath) == 0, CompilerException, "couldn't change into directory: " << currPath);
 	}
 }
 
