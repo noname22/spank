@@ -177,8 +177,10 @@ void Spank::postBuild()
 		prefix.append(sep);
 
 		// cflags
-		std::cerr << "cflags: " << PROJECT->getValueStr("dep_cflags", prefix, sep, " ") << 
-			PROJECT->getValueStr("dep_extra_cflags", prefix, sep, " ");
+		std::cerr << "cflags: " << 
+			PROJECT->getValueStr("dep_cflags", prefix, sep, " ") << 
+			PROJECT->getValueStr("dep_extra_cflags", prefix, sep, " ") <<
+			PROJECT->getValueStr("_dep_cflags", " ", " ", " "); // cflags from recursive dependencies
 
 		if(PROJECT->getNumValues("lib") > 0){
 			std::cerr << " `" << PROJECT->getValueStr("pkg-config") <<
@@ -205,6 +207,8 @@ void Spank::postBuild()
 			std::cerr << " `" << PROJECT->getValueStr("pkg-config") <<
 				PROJECT->getValueStr("lib-static", " --libs ", " ") << "` ";
 		}
+
+		PROJECT->getValueStr("_dep_ldflags", " ", " ", " "); // ldflags from recursive dependencies
 
 		std::cerr << std::endl;
 	}
