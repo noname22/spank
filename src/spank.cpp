@@ -167,6 +167,7 @@ int Spank::run(int argc, char** argv)
 void Spank::postBuild()
 {
 	LOG("post build", LOG_DEBUG);
+
 	if(PROJECT->getValueBool("dep_printinfo")){
 		std::string target = FILES->realpath(PROJECT->getValueStr("dep_target"));
 		LASSERT(target != "", "could not locate target");
@@ -208,7 +209,7 @@ void Spank::postBuild()
 				PROJECT->getValueStr("lib-static", " --libs ", " ") << "` ";
 		}
 
-		PROJECT->getValueStr("_dep_ldflags", " ", " ", " "); // ldflags from recursive dependencies
+		std::cerr << PROJECT->getValueStr("_dep_ldflags", " ", " ", " "); // ldflags from recursive dependencies
 
 		std::cerr << std::endl;
 	}
