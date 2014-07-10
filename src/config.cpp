@@ -528,3 +528,14 @@ void Config::printSectionList(std::vector<Section> sections)
 			LOG("  " << it->name << (it->isDefault ? " (default)" : ""), LOG_INFO);
 	}
 }
+
+bool Config::containsValue(std::string key, std::string value)
+{
+	int nv = getNumValues(key);
+	
+	for(int i = 0; i < nv; i++)
+		if(getValueStr(key, i) == value)
+			return true;
+	
+	return false;
+}

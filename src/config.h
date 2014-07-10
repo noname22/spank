@@ -81,6 +81,8 @@ class Config{
 	int getValueInt(std::string key, int index = 0);
 	int getNumValues(std::string key);
 
+	bool containsValue(std::string key, std::string value);
+
 	std::vector<std::string> getValues(std::string key);
 	
 	std::vector<Section> getSectionList();

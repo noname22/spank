@@ -78,8 +78,14 @@ int Spank::run(int argc, char** argv)
 		if(action == "build"){
 			LOG("Action: build", LOG_DEBUG);
 
-			COMPILER->compile();
-			COMPILER->link();
+			preBuild();
+
+			if(!PROJECT->containsValue("skipstep", "compile"))
+				COMPILER->compile();
+
+			if(!PROJECT->containsValue("skipstep", "link"))
+				COMPILER->link();
+
 			postBuild();
 
 			LOG("done building", LOG_VERBOSE);
@@ -89,9 +95,17 @@ int Spank::run(int argc, char** argv)
 			LOG("Action: install", LOG_DEBUG);
 			
 			INSTALLER->setPrefix();
-			COMPILER->compile();
-			COMPILER->link();
+
+			preBuild();
+
+			if(!PROJECT->containsValue("skipstep", "compile"))
+				COMPILER->compile();
+
+			if(!PROJECT->containsValue("skipstep", "link"))
+				COMPILER->link();
+
 			postBuild();
+
 			INSTALLER->install(false);
 			
 			LOG("done installing", LOG_VERBOSE);
@@ -118,8 +132,14 @@ int Spank::run(int argc, char** argv)
 
 			Tools::saveTempValue("extraarg", extraarg);
 
-			COMPILER->compile();
-			COMPILER->link();
+			preBuild();
+
+			if(!PROJECT->containsValue("skipstep", "compile"))
+				COMPILER->compile();
+
+			if(!PROJECT->containsValue("skipstep", "link"))
+				COMPILER->link();
+
 			postBuild();
 
 			LOG("done rebuilding", LOG_VERBOSE);
@@ -162,6 +182,13 @@ int Spank::run(int argc, char** argv)
 	}
 
 	return 0;
+}
+
+void Spank::preBuild()
+{
+	COMPILER->buildDeps();
+	LOG("Running pre-build scripts", LOG_EXTRA_VERBOSE);
+	AssertEx(Tools::executeAll("prebuildscript"), CompilerException, "Could not execute pre-build scripts");
 }
 
 void Spank::postBuild()
@@ -263,6 +290,7 @@ void Spank::setDefaultConfig()
 	PROJECT->setValue("debug-only-files", "");
 			
 	// building related (reset with templates)
+	PROJECT->setValue("skipstep", "");
 	PROJECT->setValue("compiler", "");
 	PROJECT->setValue("sources", "");
 	PROJECT->setValue("template", "");
