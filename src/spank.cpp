@@ -636,6 +636,10 @@ void Spank::handleArgs(int argc, const char* const* argv){
 		PROJECT->setValue("lib-shared_prefix", "");
 		PROJECT->setValue("lib-shared_suffix", ".dll");
 		PROJECT->setValue("inst_prefix", "/usr/$(host)/");
+
+		if(targetPlatform == "mingw32"){
+			PROJECT->setValue("fpic", "");
+		}
 	}
 	else if(targetPlatform != "posix"){
 		LOG("unknown target platform: '" << targetPlatform << "', assuming posix", LOG_WARNING);
