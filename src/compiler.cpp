@@ -61,9 +61,9 @@ void Compiler::buildDeps()
 		LOG(dep, LOG_VERBOSE);
 
 		std::string currPath = FILES->realpath(".");
-		LASSERT(currPath != "", "could not determine current directory!");
+		AssertEx(currPath != "", CompilerException, "could not determine current directory!");
 
-		LASSERT(FILES->chdir(dep) == 0, "couldn't change into dependency directory into: " << dep);
+		AssertEx(FILES->chdir(dep) == 0, CompilerException, "couldn't change into dependency directory into: " << dep);
 
 		std::string err;
 		std::string extra = vals.size() > 1 ? vals[1] : "";
