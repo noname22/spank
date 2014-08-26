@@ -52,7 +52,12 @@ void Compiler::buildDeps()
 		LOG("Building external projects", LOG_VERBOSE);
 
 	for(int i = 0; i < PROJECT->getNumValues(cfgVal); i++){
-		std::string dep = PROJECT->getValueStr(cfgVal, i);
+		std::string str = PROJECT->getValueStr(cfgVal, i);
+		std::vector<std::string> vals = Tools::splitString(str, ':', 1);
+
+		AssertEx(vals.size() > 0, CompilerException, "malformed dependency description (" << str << ")");
+		
+		std::string dep = vals[0];
 		LOG(dep, LOG_VERBOSE);
 
 		std::string currPath = FILES->realpath(".");
@@ -61,7 +66,9 @@ void Compiler::buildDeps()
 		LASSERT(FILES->chdir(dep) == 0, "couldn't change into dependency directory into: " << dep);
 
 		std::string err;
-		FORMSTR(cmd, PROJECT->getValueStr("spank") << " -verbosity 3 -dep_printinfo yes " << PROJECT->getValueStr("depaction"));
+		std::string extra = vals.size() > 1 ? vals[1] : "";
+
+		FORMSTR(cmd, PROJECT->getValueStr("spank") << " -verbosity 3 -dep_printinfo yes " << PROJECT->getValueStr("depaction") << " " << extra);
 		if(Tools::execute(cmd, 0, &err, false) != 0){
 			std::cerr << err;
 			ThrowEx(CompilerException, "failed to build external project: " << dep);

@@ -653,5 +653,5 @@ void Spank::handleArgs(int argc, const char* const* argv){
 		PROJECT->dumpConfig();
 	}
 
-	AssertEx(!noConfig, SpankException, "No project file found");
+	AssertEx(!noConfig, SpankException, "Project file or configuration not found");
 }

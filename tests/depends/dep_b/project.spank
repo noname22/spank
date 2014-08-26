@@ -1,3 +1,7 @@
+[*non-working_cfg]
+compiler does-not-exist
+
+[working_cfg]
 name dep_b
 targettype lib-static
 sourcedir src

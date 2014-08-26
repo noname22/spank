@@ -225,5 +225,6 @@ std::string FilesUnix::realpath(std::string filename)
 
 int FilesUnix::chdir(std::string dir)
 {
+	LOG("chdir: " << dir, LOG_EXTRA_VERBOSE);
 	return ::chdir(dir.c_str());
 }

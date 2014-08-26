@@ -174,7 +174,7 @@ std::string Tools::joinStrings(std::vector<std::string> & strs, std::string sepa
 	return ret;
 }
 
-std::vector<std::string> Tools::splitString(std::string str, char separator)
+std::vector<std::string> Tools::splitString(std::string str, char separator, int max)
 {
 	std::vector<std::string> ret;
 
@@ -183,6 +183,13 @@ std::vector<std::string> Tools::splitString(std::string str, char separator)
 
 	while (std::getline(ss, item, separator)) {
 		ret.push_back(item);
+		
+		if(max >= 0 && (int)ret.size() >= max){
+			std::istreambuf_iterator<char> eos;
+			std::string s(std::istreambuf_iterator<char>(ss), eos);
+			ret.push_back(s);
+			break;
+		}
 	}
 
 	return ret;
