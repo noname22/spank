@@ -310,8 +310,8 @@ void Spank::setDefaultConfig()
 
 	// TODO merge this with general library info
 	PROJECT->setValue("dep_target", "$(target)");
-	PROJECT->setValue("dep_cflags", "I$(projectpath)/include");
-	PROJECT->setValue("dep_ldflags", "L$(projectpath) -l$(name)");
+	PROJECT->setValue("dep_cflags", "I'$(projectpath)/include'");
+	PROJECT->setValue("dep_ldflags", "L'$(projectpath)' -l$(name)");
 	PROJECT->setValue("dep_extra_ldflags", "");
 	PROJECT->setValue("dep_extra_cflags", "");
 
