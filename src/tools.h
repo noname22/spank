@@ -23,6 +23,8 @@
 #include <set>
 #include <map>
 
+#define Str(_what) [&]() -> std::string {std::stringstream _tmp; _tmp << _what; return _tmp.str(); }()
+
 typedef std::vector<std::string> StrVec;
 typedef std::set<std::string> StrSet;
 typedef std::map<std::string, std::string> StrStrMap;

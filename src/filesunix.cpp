@@ -210,12 +210,24 @@ std::string FilesUnix::baseName(std::string filename)
 	return ret;
 }
 
+std::string FilesUnix::getAbsoluteExecutablePath(std::string filename)
+{
+	std::string path;
+	if(Tools::execute(Str("which '" << filename << "'"), &path) != 0)
+		throw FilesException(Str("could not locate binary: " << filename));
+
+	if(path.size() < 2)
+		throw FilesException(Str("could not locate binary: " << filename));
+	
+	return realpath(path.substr(0, path.size() - 1));
+}
+
 std::string FilesUnix::realpath(std::string filename)
 {
 	char buffer[PATH_MAX];
 
 	if(!::realpath(filename.c_str(), buffer)){
-		LOG("realname() for " << filename << " failed.", LOG_EXTRA_VERBOSE);
+		LOG("realname() for " << filename << " failed: " << errno, LOG_EXTRA_VERBOSE);
 		return "";
 	}
 

@@ -40,6 +40,8 @@ class FilesUnix: public Files
 		std::string combinePath(std::vector<std::string> p);
 		std::string realpath(std::string filename);
 		int chdir(std::string dir);
+		
+		std::string getAbsoluteExecutablePath(std::string filename);
 
 	private:
 		bool find(std::string what, std::string where, std::string result);

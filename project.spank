@@ -12,9 +12,9 @@ description	"Spank is a build system (like make, automake, etc.) designed with e
 target		spank
 
 # --- Compiler stuff ---
-template	c++
+template	c++11
 sourcedir	src
-cflags 		D'SPANK_VERSION="$(version)"' Wall pedantic ggdb #Wfatal-errors
+cflags 		D'SPANK_VERSION="$(version)"' std=c++11 Wall pedantic ggdb #Wfatal-errors
 
 # --- Installer stuff ---
 inst_copy	$(target) $(inst_prefix)bin/$(target)

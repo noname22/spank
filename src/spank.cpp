@@ -37,16 +37,7 @@ int Spank::run(int argc, char** argv)
 		FILES->initializeTmpDir();
 		
 		if(PROJECT->getValueStr("spank") == ""){
-			// if spank is started from a relative path, like ../spank
-			// do a realpath lookup for it to make sure that's the command used
-			// when recursing.
-
-			std::string spankBin = FILES->realpath(argv[0]);
-
-			if(spankBin == "")
-				spankBin = argv[0];			
-
-			PROJECT->setValue("spank", spankBin);
+			PROJECT->setValue("spank", FILES->getAbsoluteExecutablePath(argv[0]));
 		}
 
 		// compare against last extraarg and trigger rebuild if they differ, since then it's a new configuration
