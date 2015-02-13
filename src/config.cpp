@@ -354,9 +354,14 @@ bool Config::loadConfig(std::string filename, std::string section, int depth, st
 		if(goodItem){
 			itemsInsertedCount++;
 
-			for(int x=0; x < (int)item.value.size(); x++)
-				AssertEx(!(!addValue(item.key, item.value.at(x), VAR_PROJECT) && configItems.count(item.key) != 0), 
+			for(int x=0; x < (int)item.value.size(); x++){
+				// overwrite previous value if * is prepended
+				bool overwrite = item.key.at(0) == '*';
+				item.key = item.key.substr(overwrite ? 1 : 0);
+
+				AssertEx(!(!setAddValue(overwrite ? C_SET : C_ADD, item.key, item.value.at(x), VAR_PROJECT) && configItems.count(item.key) != 0), 
 					ConfigException, "Syntax error in project file @ " << filename << ":" << lineCount);
+			}
 
 			if(item.key == "include"){
 				for(std::vector<std::string>::iterator it = item.value.begin(); it != item.value.end(); it++){
