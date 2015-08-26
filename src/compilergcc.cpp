@@ -345,6 +345,8 @@ std::string CompilerGcc::getLdCall(bool rlCheck)
 
 	std::string target = PROJECT->getValueStr("target");
 	std::string targettype = PROJECT->getValueStr("targettype");
+	
+	std::string hyphen = PROJECT->getValueBool("addhyphen") ? " -" : " ";
 
 	if(targettype == "lib-static"){
 		call << PROJECT->getValueStr("ar") << " rcs " << target;
@@ -357,7 +359,6 @@ std::string CompilerGcc::getLdCall(bool rlCheck)
 		}
 		call << PROJECT->getValueStr("linker") << " -o '" << target << "'";
 	}
-	
 	
 	std::string open = FILES->getTmpDir();
 	
@@ -380,11 +381,7 @@ std::string CompilerGcc::getLdCall(bool rlCheck)
 	}
 
 	if(targettype != "lib-static"){
-		if(PROJECT->getValueBool("addhyphen")){
-			call << " " << PROJECT->getValueStr("ldflags", "-", " -", " ");
-		}else{
-			call << " " << PROJECT->getValueStr("ldflags", " ", " ", " ");
-		}
+		call << " " << PROJECT->getValueStr("ldflags", hyphen, hyphen, " ");
 
 		if(PROJECT->getNumValues("lib"))
 			call << "`" << PROJECT->getValueStr("pkg-config") << PROJECT->getValueStr("lib", " --libs ", " ", "` ");
@@ -393,6 +390,8 @@ std::string CompilerGcc::getLdCall(bool rlCheck)
 			call << "`" << PROJECT->getValueStr("pkg-config") << PROJECT->getValueStr("lib-static", " --static --libs ", " ", "` ");
 
 		call << PROJECT->getValueStr("_dep_ldflags", " ", " ", " ", true); 
+		
+		call << " " << PROJECT->getValueStr("ldflags_extra", hyphen, hyphen, " ");
 		
 		if(targettype == "binary"){
 			// TODO refacture so that getLdCall could get passed a list of the source files rather than reading them again from the list
@@ -650,6 +649,7 @@ bool CompilerGcc::compileSingleCall(StrSet list)
 
 	std::string hyphen = PROJECT->getValueBool("addhyphen") ? " -" : " ";
 	std::string ldFlags = PROJECT->getValueStr("ldflags", hyphen, hyphen, " ");
+	std::string ldFlagsExtra = PROJECT->getValueStr("ldflags_extra", hyphen, hyphen, " ");
 	
 	std::stringstream call;
 	call << PROJECT->getValueStr("compiler", 0) << " ";
@@ -666,6 +666,7 @@ bool CompilerGcc::compileSingleCall(StrSet list)
 		call << PROJECT->getValueStr("fpic") << " ";
 	}
 
+	call << ldFlagsExtra;
 	call << " -o '" << PROJECT->getValueStr("target") << "'";
 
 	return Tools::execute(call.str(), 0, 0, false) == 0;

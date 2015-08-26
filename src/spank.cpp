@@ -254,6 +254,7 @@ void Spank::setDefaultConfig()
 	PROJECT->setValue("showbuildconfigs", "false");
 	PROJECT->setValue("showconfig", "false");
 	PROJECT->setValue("ldflags", "");
+	PROJECT->setValue("ldflags_extra", "");
 	PROJECT->setValue("exclude", "");
 	PROJECT->setValue("rccheck", "recursive");
 	PROJECT->setValue("pp", "$(compiler) -E");
