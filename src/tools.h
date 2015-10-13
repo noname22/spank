@@ -14,8 +14,6 @@
 
 // TODO: no unix dependencies in tools
 #include <unistd.h>
-#include <sys/types.h>
-#include <sys/wait.h>
 
 #include <string>
 #include <sstream>		
