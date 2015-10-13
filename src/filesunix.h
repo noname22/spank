@@ -29,6 +29,7 @@ class FilesUnix: public Files
 		std::string getGlobalTmpDir();
 		bool removeDir(std::string dir);
 		bool copy(std::string from, std::string to);
+		bool removeFile(const std::string& path);
 		
 		std::pair<std::string, std::string> pathSplit(std::string path);
 		
@@ -42,6 +43,7 @@ class FilesUnix: public Files
 		int chdir(std::string dir);
 		
 		std::string getAbsoluteExecutablePath(std::string filename);
+		std::string genSystemTempFileName(const std::string& prefix);
 
 	private:
 		bool find(std::string what, std::string where, std::string result);

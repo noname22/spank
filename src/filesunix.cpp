@@ -89,8 +89,12 @@ bool FilesUnix::createDir(std::string dir)
 
 bool FilesUnix::removeDir(std::string dir)
 {
-	FORMSTR(cmd, "rm -rf \"" << dir << "\"");
-	return !Tools::execute(cmd);
+	return Tools::execute(Str("rm -rf '" << dir << "'")) == 0;
+}
+		
+bool FilesUnix::removeFile(const std::string& path)
+{
+	return system(Str("rm '" << path << "'").c_str()) == 0;
 }
 
 bool FilesUnix::copy(std::string from, std::string to)
@@ -226,19 +230,28 @@ std::string FilesUnix::getAbsoluteExecutablePath(std::string filename)
 
 std::string FilesUnix::realpath(std::string filename)
 {
-	char buffer[PATH_MAX];
-
-	if(!::realpath(filename.c_str(), buffer)){
-		LOG("realname() for " << filename << " failed: " << errno, LOG_EXTRA_VERBOSE);
-		return "";
-	}
-
-	return buffer;
+	std::string name;
+	std::string err;
 	
+	std::string cmd = Str("readlink -n -f -- '" << filename << "'");
+
+	int ret = Tools::execute(cmd, &name, &err);
+
+	if(ret != 0)
+		throw std::runtime_error(Str("realpath failed to execute command: " << cmd << ", error returned: " << err << ", exit code: " << ret));
+	
+	std::cout << filename << " -> " << name << std::endl;
+	
+	return name;
 }
 
 int FilesUnix::chdir(std::string dir)
 {
 	LOG("chdir: " << dir, LOG_EXTRA_VERBOSE);
 	return ::chdir(dir.c_str());
+}
+
+std::string FilesUnix::genSystemTempFileName(const std::string& prefix)
+{
+	return combinePath(Tools::makeStrVector("/tmp", Str(prefix << rand())));
 }

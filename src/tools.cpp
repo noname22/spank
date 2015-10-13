@@ -137,6 +137,7 @@ std::string Tools::stripSrcDir(std::string name)
 	}
 	return name;
 }
+
 int Tools::execute(std::string cmd, std::string stdFile, std::string errFile)
 {
 	FORMSTR(tmpCmd, cmd << " >" << stdFile << " 2>" << errFile);
@@ -210,8 +211,8 @@ std::string Tools::restOfString(std::string str, std::string startsWith)
 		
 int Tools::execute(std::string cmd, std::string* out, std::string* err, bool supress)
 {
-	FORMSTR(outFile, FILES->getTmpDirStr() << "/cmd_out"); // TODO not very thread safe etc.
-	FORMSTR(errFile, FILES->getTmpDirStr() << "/cmd_err"); // TODO not very thread safe etc.
+	std::string outFile = FILES->genSystemTempFileName("spank_cmd_out_");
+	std::string errFile = FILES->genSystemTempFileName("spank_cmd_err_");
 
 	std::stringstream tmpCmd;
 
@@ -222,17 +223,20 @@ int Tools::execute(std::string cmd, std::string* out, std::string* err, bool sup
 
 	if(err || supress)
 		tmpCmd << " 2> '" << (err ? errFile : "/dev/null") << "'";
-		
 
 	LOG("Executing: " << tmpCmd.str(), LOG_DEBUG);
 
 	int ret = system(tmpCmd.str().c_str());
 
-	if(out)
+	if(out){
 		*out = FILES->strFromFile(outFile);
+		FILES->removeFile(outFile);
+	}
 
-	if(err)
+	if(err){
 		*err = FILES->strFromFile(errFile);
+		FILES->removeFile(errFile);
+	}
 
 	return ret;
 }

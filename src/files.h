@@ -37,6 +37,7 @@ class Files
 		
 		virtual bool createDir(std::string dir) = 0;
 		virtual bool removeDir(std::string dir) = 0;
+		virtual bool removeFile(const std::string& path) = 0;
 		virtual std::string getHomeDir() = 0;
 		virtual std::string getTmpDirStr() = 0;
 		virtual std::string getGlobalTmpDir() = 0;
@@ -50,7 +51,8 @@ class Files
 		virtual std::string realpath(std::string filename) = 0;
 		virtual std::string getAbsoluteExecutablePath(std::string filename) = 0;
 		virtual int chdir(std::string dir) = 0;
-
+		virtual std::string genSystemTempFileName(const std::string& prefix) = 0;
+		
 		// Actual functions
 
 		Files();

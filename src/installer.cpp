@@ -13,9 +13,9 @@ void Installer::setPrefix()
 bool Installer::checkInstallable()
 {
 	if(
-		!PROJECT->getNumValues("inst_copy") == 1 && PROJECT->getValueStr("inst_copy") == "" &&
-		!PROJECT->getNumValues("inst_prescript") == 1 && PROJECT->getValueStr("inst_prescript") == "" &&
-		!PROJECT->getNumValues("inst_postscript") == 1 && PROJECT->getValueStr("inst_postscript") == ""
+		!(PROJECT->getNumValues("inst_copy") == 1 && PROJECT->getValueStr("inst_copy") == "") &&
+		!(PROJECT->getNumValues("inst_prescript") == 1 && PROJECT->getValueStr("inst_prescript") == "") &&
+		!(PROJECT->getNumValues("inst_postscript") == 1 && PROJECT->getValueStr("inst_postscript") == "")
 	){
 		LOG("Nothing to install.", LOG_ERROR);
 		return false;

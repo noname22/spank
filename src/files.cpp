@@ -15,6 +15,7 @@
 
 #include "log.h"
 #include "macros.h"
+#include "tools.h"
 
 Files::Files()
 {
@@ -23,6 +24,7 @@ Files::Files()
 
 Files::~Files()
 {
+	srand(time(0));
 }
 
 bool Files::fileFromStr(std::string fileName, std::string str)
@@ -97,4 +99,3 @@ bool Files::erase(std::string fileName)
 	}
 	return false;
 }
-
