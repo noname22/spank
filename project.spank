@@ -15,6 +15,7 @@ target		spank
 template	c++11
 sourcedir	src
 cflags 		D'SPANK_VERSION="$(version)"' std=c++11 Wall pedantic ggdb #Wfatal-errors
+ldflags   lpthread
 
 # --- Installer stuff ---
 inst_copy	$(target) $(inst_prefix)bin/$(target)

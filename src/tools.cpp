@@ -16,6 +16,7 @@
 #include <string>
 #include <algorithm>
 #include <fstream>
+#include <pthread.h>
 
 #include "project.h"
 #include "macros.h"
@@ -24,24 +25,6 @@
 
 // UNIX stuff
 
-void Tools::forkDo(std::string cmd, PidList& pidList, int id)
-{
-	pid_t pid = fork();
-	if(pid == 0){
-		LOG("New process: " << cmd, LOG_DEBUG);
-		int exitCode = system(cmd.c_str());
-		LOG("Process exited with code: " << exitCode, LOG_DEBUG); 
-		LOG("(" << cmd << ")", LOG_DEBUG);
-		exit(!!exitCode);
-	}
-
-	ForkResult p;
-	p.pid = pid;
-	p.id = id;
-	p.cmd = cmd;
-	pidList.push(p);
-}
-
 std::string Tools::getLineStream(std::istream& stream)
 {
 	char buffer[SPANK_MAX_LINE];
@@ -49,43 +32,48 @@ std::string Tools::getLineStream(std::istream& stream)
 	return std::string(buffer);
 }
 
-ForkResult Tools::wait(PidList& pidList, unsigned int max)
+struct ThreadData
 {
-	ForkResult result;
+	std::string cmd;
+	int exitCode;
+	pthread_t thread;
+};
 
-	if(pidList.size() == 0){
-		result.done = true;
-		return result;
-	}
-
-	if(pidList.size() > max){
-		int status;
-
-		ForkResult& p = pidList.front();
-
-		LOG("Waiting for pid: " << p.pid, LOG_DEBUG);
-		waitpid(p.pid, &status, 0);
+void* threadExecute(void* vdata)
+{
+	ThreadData* data = (ThreadData*)vdata;
+	data->exitCode = system(data->cmd.c_str());
+	pthread_exit(NULL);
+	return 0;
+}
 	
-		result.pid = p.pid;
-		result.id = p.id;
-		result.noResult = false;
+std::vector<int> Tools::threadedExecute(const std::vector<std::string>& commands)
+{
+	std::vector<ThreadData> data(commands.size());
 
-		if(WIFEXITED(status)){
-			LOG("Process with cmd: " << p.cmd, LOG_DEBUG);
-			LOG("Process exited normally and returned " << WEXITSTATUS(status), LOG_DEBUG);
-			LOG("(" << status << ")", LOG_DEBUG);
-			if(WEXITSTATUS(status) == 0){
-				LOG("Process exited successfully", LOG_DEBUG);
-				result.error = false;
-			}else{
-				LOG("Process exited with an error code", LOG_DEBUG);
-			}
-		}
-		
-		pidList.pop();
+	int i = 0;
+	for(auto& cmd : commands){
+		data[i].cmd = cmd;
+		int ret = pthread_create(&data[i].thread, NULL, threadExecute, (void*)&data[i]);
+
+		if(ret != 0)
+			throw std::runtime_error(Str("failed to create thread, error code: " << ret << ", for command: " << cmd));
+
+		i++;
 	}
 
-	return result;
+	std::vector<int> exitCodes;
+
+	for(auto& td : data){
+		int ret = pthread_join(td.thread, NULL);
+		
+		if(ret != 0)
+			throw std::runtime_error(Str("failed to join thread, error code: " << ret << ", for command: " << td.cmd));
+
+		exitCodes.push_back(td.exitCode);
+	}
+
+	return exitCodes;
 }
 
 // non-UNIX stuff

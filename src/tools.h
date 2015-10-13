@@ -29,27 +29,6 @@ typedef std::vector<std::string> StrVec;
 typedef std::set<std::string> StrSet;
 typedef std::map<std::string, std::string> StrStrMap;
 
-class ForkResult
-{
-	public:
-		ForkResult(){
-			error = true;
-			done = false;
-			noResult = true;
-			pid = 0;
-			id = -1;
-		}
-
-		bool noResult;
-		bool error;
-		bool done;
-		int id;
-		std::string cmd;
-		pid_t pid;
-};
-
-typedef std::queue<ForkResult> PidList;
-
 class Tools
 {
 	public:
@@ -75,11 +54,8 @@ class Tools
 	static std::vector<std::string> makeStrVector(std::string a, std::string b);
 	static std::vector<std::string> makeStrVector(std::string a, std::string b, std::string c);
 	static std::vector<std::string> makeStrVector(std::string a, std::string b, std::string c, std::string d);
-
-	// Unix stuff
-	static void forkDo(std::string cmd, PidList& pidList, int id=0);
-	static ForkResult wait(PidList& pidList, unsigned int max);
-
+	
+	static std::vector<int> threadedExecute(const std::vector<std::string>& commands);
 	static bool executeAll(std::string configItem, std::string prefix = "", bool fake = false);
 	static void saveTempValue(std::string key, std::string value);
 	static bool loadTempValue(std::string key, std::string& value);

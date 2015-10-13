@@ -686,44 +686,49 @@ bool CompilerGcc::compileFileByFile(StrSet list)
 		return true;
 	}
 	
-	ForkResult handle;
-	PidList pidList;
-
 	int numJobs = PROJECT->getValueInt("jobs") - 1;
-	bool ret = true;
 
-	LOG("Compiling with " << numJobs + 1 << " jobs.", LOG_EXTRA_VERBOSE);
+	unsigned i = 0;
+	unsigned batchIndex = 0;
 
-	for(int i=0; i < (int)cList.size(); i++){
-		LOG("[ " << getPercent(i, (int)cList.size()) << " %] " << Tools::stripSrcDir(cList.at(i).src), LOG_INFO);
+	std::vector<std::string> batch;
+
+	for(CList& cl : cList){
+		batch.push_back(cl.call);
 		
-		LOG(cList.at(i).call.c_str(), LOG_EXTRA_VERBOSE);
+		LOG("[ " << getPercent(i, (int)cList.size()) << " %] " << Tools::stripSrcDir(cl.src), LOG_INFO);
+		LOG(cl.call, LOG_EXTRA_VERBOSE);
 	
 		if(FILES->fileExists(cList.at(i).obj)){
 			LOG("Removing old object file: '" << cList.at(i).obj << "'", LOG_DEBUG);
 			FILES->erase(cList.at(i).obj);
 		}
-	
-		Tools::forkDo(cList.at(i).call.c_str(), pidList, i);
-		handle = Tools::wait(pidList, numJobs);	
 
-		if(!handle.noResult && handle.error){
-			LOG("Compilation failed, removing associated files", LOG_DEBUG);
-			markRecompile(cList.at(handle.id).src, cList.at(handle.id).obj);
-			ret = false;
-			break;
+		if((int)batch.size() >= numJobs || i >= cList.size() - 1){
+			std::vector<int> exitCodes = Tools::threadedExecute(batch);
+
+			unsigned ecIndex = 0;
+			bool failed = false;
+
+			for(int ec : exitCodes){
+				if(ec != 0){
+					CList failedFile = cList.at(i - batchIndex + ecIndex);
+					markRecompile(failedFile.src, failedFile.obj);
+					failed = true;
+				}
+
+				ecIndex++;
+			}
+			
+			batchIndex += batch.size();
+			batch.clear();
+
+			if(failed)
+				return false;
 		}
+
+		i++;
 	}
 
-	while(!handle.done){
-		handle = Tools::wait(pidList, 0);
-		if(!handle.noResult && handle.error){
-			LOG("Compilation failed, removing associated files", LOG_DEBUG);
-			markRecompile(cList.at(handle.id).src, cList.at(handle.id).obj);
-			ret = false;
-			break;
-		}
-	}
-
-	return ret;
+	return true;
 }
