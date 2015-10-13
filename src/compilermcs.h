@@ -20,7 +20,7 @@ class CompilerMcs: public Compiler
 		void localCompile();
 		void localLink();
 		
-		std::vector<CList> compileList(bool rcCheck = true);
+		std::vector<CList> compileList(const StrSet& sourceList, bool rcCheck = true);
 		std::string getLdCall(bool rlCheck);
 
 	private:

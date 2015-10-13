@@ -57,6 +57,9 @@ class Tools
 	static bool executeAll(std::string configItem, std::string prefix = "", bool fake = false);
 	static void saveTempValue(std::string key, std::string value);
 	static bool loadTempValue(std::string key, std::string& value);
+
+	static bool checkExclude(const std::string src);
+	static StrSet getSourceList();
 };
 
 #endif

@@ -19,7 +19,7 @@
 
 bool ExportMakefile::exp(std::string fileName)
 {
-	std::vector<CList> cList = COMPILER->compileList(false);
+	std::vector<CList> cList = COMPILER->compileList(Tools::getSourceList(), false);
 
 	LOG("Makefile exporter", LOG_DEBUG);
 	LOG("Number of source files: " << cList.size(), LOG_DEBUG);

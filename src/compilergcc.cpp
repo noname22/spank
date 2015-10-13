@@ -26,31 +26,10 @@ CompilerGcc::CompilerGcc()
 	hasPkgConfig = false;
 }
 
-// Makes a list of all source files in the project.
-StrSet CompilerGcc::getSourceList()
-{
-	std::ifstream listFile(FILES->combinePath(Tools::makeStrVector(FILES->getTmpDir(), "filelist")).c_str());
-	StrSet list;
-
-	while(listFile.good()){
-		std::string line;
-		getline(listFile, line);
-
-		if(line != "" && !checkExclude(line))
-			list.insert(line);
-		
-	}
-
-	listFile.close();
-
-	return list;
-}
-
 // Returns a vector with compile commands to be executed, eg gcc -c file.c -o file.o
 // If rcCheck is true it only returns the files that need recompilation
-std::vector<CList> CompilerGcc::compileList(bool rcCheck)
+std::vector<CList> CompilerGcc::compileList(const StrSet& list, bool rcCheck)
 {
-	StrSet list = sources; // TODO HACK see note in localCompile
 	std::vector<CList> cList;
 	std::ofstream objectList(FILES->combinePath(Tools::makeStrVector(FILES->getTmpDir(), "objectlist")).c_str());
 
@@ -79,7 +58,7 @@ std::vector<CList> CompilerGcc::compileList(bool rcCheck)
 	}
 
 	// TODO HACK
-	AssertEx(list.size() > 0, CompilerException, "Nothing to do");
+	AssertEx(list.size() > 0, CompilerException, "Nothing to do.");
 
 	return cList;	
 }
@@ -395,7 +374,7 @@ std::string CompilerGcc::getLdCall(bool rlCheck)
 		
 		if(targettype == "binary"){
 			// TODO refacture so that getLdCall could get passed a list of the source files rather than reading them again from the list
-			StrSet sources = getSourceList();
+			StrSet sources = Tools::getSourceList();
 			StrSet stdlibs = getStdLibs(sources);
 
 			for(StrSet::iterator it = stdlibs.begin(); it != stdlibs.end(); it++)
@@ -494,7 +473,7 @@ void CompilerGcc::localCompile()
 	AssertEx(checkLibs(), CompilerException, "Could not locate all dependencies");
 
 	LOG("Preparing...", LOG_VERBOSE);
-	StrSet sources = getSourceList();
+	StrSet sources = Tools::getSourceList();
 
 	std::string strategy = PROJECT->getValueStr("compilation-strategy");
 
@@ -674,10 +653,7 @@ bool CompilerGcc::compileSingleCall(StrSet list)
 
 bool CompilerGcc::compileFileByFile(StrSet list)
 {
-	// TODO HACK don't pass the sources argument by member,
-	// (requires refactoring of compiler interface)
-	sources = list;
-	std::vector<CList> cList = compileList();
+	std::vector<CList> cList = compileList(list, true);
 
 	if(cList.size() > 0){
 		LOG("Compiling...", LOG_VERBOSE);

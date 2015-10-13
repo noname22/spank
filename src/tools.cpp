@@ -353,3 +353,38 @@ bool Tools::loadTempValue(std::string key, std::string& value)
 
 	return true;
 }
+	
+bool Tools::checkExclude(const std::string src)
+{
+	for(int i=0; i < PROJECT->getNumValues("exclude"); i++){
+		if(src == PROJECT->getValueStr("exclude", i)){
+			LOG("Excluding " << src << " from build.", LOG_EXTRA_VERBOSE);
+			return true;
+		}
+	}
+	return false;
+}
+
+StrSet Tools::getSourceList()
+{
+	std::string fileList = FILES->combinePath(Tools::makeStrVector(FILES->getTmpDir(), "filelist")).c_str();
+	if(!FILES->fileExists(fileList)){
+		FILES->genSourceFileList(PROJECT->getValueStr("tmpdir"));
+	}
+
+	std::ifstream listFile(fileList);
+	StrSet list;
+
+	while(listFile.good()){
+		std::string line;
+		getline(listFile, line);
+
+		if(line != "" && !checkExclude(line))
+			list.insert(line);
+		
+	}
+
+	listFile.close();
+
+	return list;
+}

@@ -14,6 +14,8 @@
 #include <vector>
 #include <stdexcept>
 
+#include "tools.h"
+
 class CompilerException : public std::runtime_error {
 	public:
 	CompilerException(std::string str) : std::runtime_error(str) {}
@@ -43,12 +45,11 @@ class Compiler
 	virtual ~Compiler();
 
 	virtual std::string getLdCall(bool rlCheck) = 0;
-	virtual std::vector<CList> compileList(bool rcCheck = true) = 0;
+	virtual std::vector<CList> compileList(const StrSet& sourceList, bool rcCheck = true) = 0;
 
 	virtual bool checkLibs();
 
 	protected:
-	bool checkExclude(std::string src);
 	int countLines(std::string name); 
 };
 

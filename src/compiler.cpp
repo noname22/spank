@@ -129,17 +129,6 @@ bool Compiler::checkLibs()
 	return true;
 }
 
-bool Compiler::checkExclude(std::string src)
-{
-	for(int i=0; i < PROJECT->getNumValues("exclude"); i++){
-		if(src == PROJECT->getValueStr("exclude", i)){
-			LOG("Excluding " << src << " from build.", LOG_EXTRA_VERBOSE);
-			return true;
-		}
-	}
-	return false;
-}
-
 Compiler::~Compiler()
 {
 }

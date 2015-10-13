@@ -70,7 +70,7 @@ std::string CompilerVala::getLdCall(bool rlCheck)
 			}
 			
 			if(noDup){
-				if(!checkExclude(src)){	
+				if(!Tools::checkExclude(src)){	
 					call << " " << src;
 					LOG(src, LOG_INFO);
 				}
@@ -82,7 +82,7 @@ std::string CompilerVala::getLdCall(bool rlCheck)
 	return call.str();
 }
 
-std::vector<CList> CompilerVala::compileList(bool rcCheck)
+std::vector<CList> CompilerVala::compileList(const StrSet& sourceList, bool rcCheck)
 {
 	std::vector<CList> tmp;
 	return tmp;

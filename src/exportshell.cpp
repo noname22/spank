@@ -20,7 +20,7 @@
 bool ExportShell::exp(std::string fileName)
 {
 	COMPILER->checkLibs();
-	std::vector<CList> cList = COMPILER->compileList(false);
+	std::vector<CList> cList = COMPILER->compileList(Tools::getSourceList(), false);
 
 	LOG("Shell script exporter", LOG_DEBUG);
 	LOG("Number of source files: " << cList.size(), LOG_DEBUG);

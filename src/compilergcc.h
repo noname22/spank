@@ -21,8 +21,7 @@ class CompilerGcc: public Compiler
 	void localCompile();
 	void localLink();
 	
-	StrSet getSourceList();
-	std::vector<CList> compileList(bool rcCheck = true);
+	std::vector<CList> compileList(const StrSet& sources, bool rcCheck = true);
 	std::string getLdCall(bool rlCheck);
 	std::string genCFlags(std::string filename, bool includeLibs = false, std::string language = "");
 	std::string parseCFlags(std::string valName);
@@ -52,7 +51,6 @@ class CompilerGcc: public Compiler
 	bool hasPkgConfig;
 	enum IncPathType { Quoted, Bracket };
 	StrVec incPaths[2]; // first is quoted paths, second is <> paths
-	StrSet sources;
 };
 
 #endif

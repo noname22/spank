@@ -86,7 +86,7 @@ std::string CompilerMcs::getLdCall(bool rlCheck)
 			}
 			
 			if(noDup){
-				if(!checkExclude(src)){	
+				if(!Tools::checkExclude(src)){	
 					call << " " << src;
 					LOG(src, LOG_INFO);
 				}
@@ -98,12 +98,12 @@ std::string CompilerMcs::getLdCall(bool rlCheck)
 	return call.str();
 }
 
-std::vector<CList> CompilerMcs::compileList(bool rcCheck)
+std::vector<CList> CompilerMcs::compileList(const StrSet& sourceList, bool rcCheck)
 {
 	std::vector<CList> tmp;
 	return tmp;
 }
-
+		
 void CompilerMcs::localCompile()
 {
 	std::string call = getLdCall(false);
