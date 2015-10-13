@@ -13,7 +13,6 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <pwd.h>
 #include <libgen.h>
 #include <limits.h>
 
@@ -28,9 +27,12 @@
 
 std::string getUserHomeDir()
 {
-	struct passwd *passwd;
-	passwd = getpwuid ( getuid());
-	return passwd->pw_dir;	
+	const char* home = getenv("HOME");
+	
+	if(home == NULL)
+		throw std::runtime_error("HOME environment variable not set");
+	
+	return std::string(home);
 }
 
 std::pair<std::string, std::string> FilesUnix::pathSplit(std::string path)
