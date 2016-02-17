@@ -24,7 +24,6 @@ Files::Files()
 
 Files::~Files()
 {
-	srand(time(0));
 }
 
 bool Files::fileFromStr(std::string fileName, std::string str)

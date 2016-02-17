@@ -253,5 +253,15 @@ int FilesUnix::chdir(std::string dir)
 
 std::string FilesUnix::genSystemTempFileName(const std::string& prefix)
 {
-	return combinePath(Tools::makeStrVector("/tmp", Str(prefix << rand())));
+	int32_t rNum = 0;
+	std::ifstream f("/dev/urandom");
+
+	if(!f.good()){
+		throw FilesException("could not read from /dev/urandom");
+	}
+
+	f.read((char*)&rNum, 4);
+	f.close();
+
+	return combinePath(Tools::makeStrVector("/tmp", Str(prefix << rNum)));
 }
