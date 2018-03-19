@@ -30,27 +30,14 @@ bool Config::fromCmdLine(int argc, const char* const* argv)
 	std::stringstream parse;
 	std::string tmp;
 
-	bool first=true;
-
-	for(int i=0; i < argc; i++){
-		if(first){
-			first = false;
-		}else{
-			parse << " ";
-		}
-		parse << argv[i];
-	}
-
-	first = true;
 	bool expect = false;
 	bool addVar = false;
 	bool actionSet = false;
 	std::string current;
 
-	parse >> tmp;
-
-	while(parse.good()){
-		parse >> tmp;
+	for(int i = 1; i < argc; i++)
+	{
+		std::string tmp(argv[i]);
 
 		if((tmp.substr(0,2) == "--" && tmp.length() > 4)){
 			addVar = true;
@@ -87,10 +74,6 @@ bool Config::fromCmdLine(int argc, const char* const* argv)
 					}else{
 						// Something written after action is parsed as a project
 						setValue("extraarg", tmp);
-						/*FORMSTR(tmp2, tmp << ".spank");
-						setValue("project", tmp2, VAR_CMDLINE); 
-						FORMSTR(tmp3, "spank/" << tmp << ".spank");
-						addValue("project", tmp3, VAR_CMDLINE); */
 					}
 				}
 			}
@@ -98,10 +81,10 @@ bool Config::fromCmdLine(int argc, const char* const* argv)
 	}
 
 	if(expect){
-		if(!addValue(current, "true", VAR_CMDLINE)){
-			return false;
-		}
+		LOG("Expected a value for command line parameter: '" << current << "'", LOG_ERROR);
+		return false;
 	}
+
 	return true;
 }
 		

@@ -240,8 +240,6 @@ std::string FilesUnix::realpath(std::string filename)
 	if(ret != 0)
 		throw std::runtime_error(Str("realpath failed to execute command: " << cmd << ", error returned: " << err << ", exit code: " << ret));
 	
-	std::cout << filename << " -> " << name << std::endl;
-	
 	return name;
 }
 

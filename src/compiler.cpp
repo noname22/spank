@@ -68,7 +68,20 @@ void Compiler::buildDeps()
 		std::string err;
 		std::string extra = vals.size() > 1 ? vals[1] : "";
 
-		FORMSTR(cmd, PROJECT->getValueStr("spank") << " -verbosity 3 -dep_printinfo yes " << PROJECT->getValueStr("depaction") << " " << extra);
+		FORMSTR(cmd, 
+			PROJECT->getValueStr("spank") << 
+			" -verbosity 3 -dep_printinfo yes " << 
+			" -host '"              << PROJECT->getValueStr("host") << "'" <<
+			" -binary_prefix '"     << PROJECT->getValueStr("binary_prefix") << "'" <<
+			" -binary_suffix '"     << PROJECT->getValueStr("binary_suffix") << "'" <<
+			" -lib-shared_prefix '" << PROJECT->getValueStr("lib-shared_prefix") << "'" <<
+			" -lib-shared_suffix '" << PROJECT->getValueStr("lib-shared_suffix") << "'" <<
+			" -inst_prefix '"       << PROJECT->getValueStr("inst_prefix") << "'" <<
+			" -fpic '"              << PROJECT->getValueStr("fpic") << "'" <<
+
+			" " << PROJECT->getValueStr("depaction") << 
+			" " << extra);
+
 		if(Tools::execute(cmd, 0, &err, false) != 0){
 			std::cerr << err;
 			ThrowEx(CompilerException, "failed to build external project: " << dep);

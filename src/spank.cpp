@@ -224,7 +224,7 @@ void Spank::postBuild()
 		
 		if(PROJECT->getNumValues("lib-static") > 0){
 			std::cerr << " `" << PROJECT->getValueStr("pkg-config") <<
-				PROJECT->getValueStr("lib-static", " --libs ", " ") << "` ";
+				PROJECT->getValueStr("lib-static", " --libs --static ", " ") << "` ";
 		}
 
 		std::cerr << PROJECT->getValueStr("_dep_ldflags", " ", " ", " "); // ldflags from recursive dependencies
@@ -404,7 +404,7 @@ void Spank::setTemplate(int type)
 
 		case TEMPLATE_CS:
 			LOG("Using template: c#", LOG_VERBOSE);
-			PROJECT->setValue("compiler", "gmcs");
+			PROJECT->setValue("compiler", "mcs");
 			PROJECT->setValue("sources", "*.cs");
 			PROJECT->setValue("template", "cs");
 			PROJECT->setValue("rccheck", "simple");
