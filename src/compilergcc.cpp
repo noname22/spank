@@ -625,7 +625,11 @@ bool CompilerGcc::compileAmalgamate(StrSet list)
 bool CompilerGcc::compileSingleCall(StrSet list)
 {
 	LOG("Compiling and linking in single call...", LOG_VERBOSE);
+	return Tools::execute(getSingleCompileCall(), 0, 0, false) == 0;
+}
 
+std::string CompilerGcc::getSingleCompileCall(const StrSet& list)
+{
 	std::string hyphen = PROJECT->getValueBool("addhyphen") ? " -" : " ";
 	std::string ldFlags = PROJECT->getValueStr("ldflags", hyphen, hyphen, " ");
 	std::string ldFlagsExtra = PROJECT->getValueStr("ldflags_extra", hyphen, hyphen, " ");
@@ -648,7 +652,17 @@ bool CompilerGcc::compileSingleCall(StrSet list)
 	call << ldFlagsExtra;
 	call << " -o '" << PROJECT->getValueStr("target") << "'";
 
-	return Tools::execute(call.str(), 0, 0, false) == 0;
+	return call.str();
+}
+	
+std::string CompilerGcc::getSingleCompileCall()
+{
+	return getSingleCompileCall(Tools::getSourceList());
+}
+
+bool CompilerGcc::getSingleCallCompileAvailable()
+{
+	return true;
 }
 
 bool CompilerGcc::compileFileByFile(StrSet list)

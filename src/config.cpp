@@ -81,8 +81,16 @@ bool Config::fromCmdLine(int argc, const char* const* argv)
 	}
 
 	if(expect){
-		LOG("Expected a value for command line parameter: '" << current << "'", LOG_ERROR);
-		return false;
+		if(current == "help" || current == "showconfig")
+		{
+			addValue(current, "true", VAR_CMDLINE);
+			return true;
+		}
+		else
+		{
+			LOG("Expected a value for command line parameter: '" << current << "'", LOG_ERROR);
+			return false;
+		}
 	}
 
 	return true;

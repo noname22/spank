@@ -46,6 +46,8 @@ class Compiler
 
 	virtual std::string getLdCall(bool rlCheck) = 0;
 	virtual std::vector<CList> compileList(const StrSet& sourceList, bool rcCheck = true) = 0;
+	virtual std::string getSingleCompileCall() { return ""; }
+	virtual bool getSingleCallCompileAvailable() { return false; }
 
 	virtual bool checkLibs();
 

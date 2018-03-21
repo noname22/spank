@@ -25,11 +25,15 @@ class CompilerGcc: public Compiler
 	std::string getLdCall(bool rlCheck);
 	std::string genCFlags(std::string filename, bool includeLibs = false, std::string language = "");
 	std::string parseCFlags(std::string valName);
+	std::string getSingleCompileCall();
+	bool getSingleCallCompileAvailable();
 
 	private:
 	bool compileFileByFile(StrSet list);
 	bool compileSingleCall(StrSet list);
 	bool compileAmalgamate(StrSet list);
+
+	std::string getSingleCompileCall(const StrSet& list);
 
 	bool checkRecompileRecursive(StrVec stack, std::string src, std::string obj, int depth = 0);
 	bool checkRecompile(std::string src, std::string obj);

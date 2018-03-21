@@ -42,34 +42,41 @@ bool ExportShell::exp(std::string fileName)
 	file << std::endl;
 
 
-	// Check if the temp directory exists, create it if not.
-	file << "if [ ! -d '" << FILES->getTmpDir() << "' ]" << std::endl;
-	file << "then" << std::endl;
-	file << "\tmkdir -p '" << FILES->getTmpDir() << "'" << std::endl;
-	file << "fi" << std::endl;
-
-	// Check if the temp directory exists (has been created), if so, then proceed
-
-	file << "if [ -d " << FILES->getTmpDir() << " ]" << std::endl;
-	file << "then" << std::endl;
-
-	// Compiliation list
-
-	for(int i=0; i < (int)cList.size(); i++){
-		file << "echo \"[ " << ((int)(((double)(i+1) / (double)cList.size() * 100 ))) << " %] " << Tools::stripSrcDir(cList.at(i).src) << "\"" << std::endl;
-		file << cList.at(i).call.c_str() << std::endl;
+	if(COMPILER->getSingleCallCompileAvailable())
+	{
+		file << COMPILER->getSingleCompileCall() << std::endl;
 	}
+	else
+	{
+		// Check if the temp directory exists, create it if not.
+		file << "if [ ! -d '" << FILES->getTmpDir() << "' ]" << std::endl;
+		file << "then" << std::endl;
+		file << "\tmkdir -p '" << FILES->getTmpDir() << "'" << std::endl;
+		file << "fi" << std::endl;
 
-	// Linker command
-	file << std::endl;
-	file << "echo \"Linking...\"" << std::endl;
-	file << COMPILER->getLdCall(false) << std::endl;
-	file << std::endl;
+		// Check if the temp directory exists (has been created), if so, then proceed
 
-	file << "else" << std::endl;
-	file << "\techo \"Couldn't create temp directory\"" << std::endl;
-	file << "fi" << std::endl;
+		file << "if [ -d " << FILES->getTmpDir() << " ]" << std::endl;
+		file << "then" << std::endl;
 
+		// Compiliation list
+
+		for(int i=0; i < (int)cList.size(); i++){
+			file << "echo \"[ " << ((int)(((double)(i+1) / (double)cList.size() * 100 ))) << " %] " << Tools::stripSrcDir(cList.at(i).src) << "\"" << std::endl;
+			file << cList.at(i).call.c_str() << std::endl;
+		}
+
+		// Linker command
+		file << std::endl;
+		file << "echo \"Linking...\"" << std::endl;
+		file << COMPILER->getLdCall(false) << std::endl;
+		file << std::endl;
+
+		file << "else" << std::endl;
+		file << "\techo \"Couldn't create temp directory\"" << std::endl;
+		file << "fi" << std::endl;
+	}
+	
 	file.close();
 
 	return true;
