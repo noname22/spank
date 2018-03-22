@@ -97,6 +97,23 @@ std::string Tools::deEscape(std::string str)
 	}
 	return out;
 }
+	
+std::string Tools::escape(const std::string& str)
+{
+	std::string out;
+
+	for(char c : str)
+	{
+		if(c == ' ' || c == '-')
+		{
+			out.push_back('\\');
+		}
+
+		out.push_back(c);
+	}
+
+	return out;
+}
 
 bool Tools::executeAll(std::string configItem, std::string prefix, bool fake)
 {

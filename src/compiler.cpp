@@ -71,13 +71,13 @@ void Compiler::buildDeps()
 		FORMSTR(cmd, 
 			PROJECT->getValueStr("spank") << 
 			" -verbosity 3 -dep_printinfo yes " << 
-			" -host '"              << PROJECT->getValueStr("host") << "'" <<
-			" -binary_prefix '"     << PROJECT->getValueStr("binary_prefix") << "'" <<
-			" -binary_suffix '"     << PROJECT->getValueStr("binary_suffix") << "'" <<
-			" -lib-shared_prefix '" << PROJECT->getValueStr("lib-shared_prefix") << "'" <<
-			" -lib-shared_suffix '" << PROJECT->getValueStr("lib-shared_suffix") << "'" <<
-			" -inst_prefix '"       << PROJECT->getValueStr("inst_prefix") << "'" <<
-			" -fpic '"              << PROJECT->getValueStr("fpic") << "'" <<
+			" -host '"              << Tools::escape(PROJECT->getValueStr("host")) << "'" <<
+			" -binary_prefix '"     << Tools::escape(PROJECT->getValueStr("binary_prefix")) << "'" <<
+			" -binary_suffix '"     << Tools::escape(PROJECT->getValueStr("binary_suffix")) << "'" <<
+			" -lib-shared_prefix '" << Tools::escape(PROJECT->getValueStr("lib-shared_prefix")) << "'" <<
+			" -lib-shared_suffix '" << Tools::escape(PROJECT->getValueStr("lib-shared_suffix")) << "'" <<
+			" -inst_prefix '"       << Tools::escape(PROJECT->getValueStr("inst_prefix")) << "'" <<
+			" -fpic '"              << Tools::escape(PROJECT->getValueStr("fpic")) << "'" <<
 
 			" " << PROJECT->getValueStr("depaction") << 
 			" " << extra);

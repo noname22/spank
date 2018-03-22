@@ -44,6 +44,7 @@ class Tools
 	static int execute(std::string cmd, std::string* std = NULL, std::string* out = NULL, bool supress = true);
 	static int execute(std::string cmd, std::string stdFile, std::string errFile = "/dev/null");
 	static std::string deEscape(std::string str);
+	static std::string escape(const std::string& str);
 	static std::string joinStrings(std::vector<std::string> & strs, std::string separator = " ");
 	static std::vector<std::string> splitString(std::string str, char separator = ' ', int max = -1);
 	static std::string restOfString(std::string str, std::string startsWith);
