@@ -122,7 +122,7 @@ std::string CompilerGcc::lookUpIncludeFile(std::string src, std::string filename
 {
 	IncPathType order[2] = {Bracket, Quoted};
 
-	StrVec incPaths[2] = this->incPaths;
+	StrVec incPaths[2] = { this->incPaths[0], this->incPaths[1] };
 	//LOG(src << " -> " << FILES->dirName(src), LOG_DEBUG);
 	incPaths[Quoted].insert(incPaths[0].begin(), FILES->dirName(src)); 	
 
