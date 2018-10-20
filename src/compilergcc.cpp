@@ -254,7 +254,7 @@ bool CompilerGcc::checkRecompileRecursive(StrVec stack, std::string src, std::st
 				if(checkRecompileRecursive(stack, filename, obj, depth + 1)){
 					return true;
 				}
-			} catch (std::runtime_error) {
+			} catch (std::runtime_error&) {
 				LOG("The file " << filename << " is includes itself (directly or indirectly).", LOG_EXTRA_VERBOSE);
 				LOG("current include stack: ", LOG_EXTRA_VERBOSE);
 				for(StrVec::iterator it = stack.begin(); it != stack.end(); it++){

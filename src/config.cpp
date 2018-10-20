@@ -488,7 +488,7 @@ std::vector<Section> Config::getSectionList()
 			in.close();
 		}
 
-		catch (std::ifstream::failure ex){
+		catch (std::ifstream::failure& ex){
 			LOG("could not load file: " << filename, LOG_VERBOSE);
 		}
 	}

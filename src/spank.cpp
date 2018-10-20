@@ -167,7 +167,7 @@ int Spank::run(int argc, char** argv)
 		}
 	}
 
-	catch (std::runtime_error ex) {
+	catch (std::runtime_error& ex) {
 		LOG("failed: " << ex.what(), LOG_FATAL);
 		return 1;
 	}
