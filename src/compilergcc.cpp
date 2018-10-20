@@ -122,7 +122,7 @@ std::string CompilerGcc::lookUpIncludeFile(std::string src, std::string filename
 {
 	IncPathType order[2] = {Bracket, Quoted};
 
-	StrVec incPaths[2] = this->incPaths;
+	StrVec incPaths[2] = { this->incPaths[0], this->incPaths[1] };
 	//LOG(src << " -> " << FILES->dirName(src), LOG_DEBUG);
 	incPaths[Quoted].insert(incPaths[0].begin(), FILES->dirName(src)); 	
 
@@ -254,7 +254,7 @@ bool CompilerGcc::checkRecompileRecursive(StrVec stack, std::string src, std::st
 				if(checkRecompileRecursive(stack, filename, obj, depth + 1)){
 					return true;
 				}
-			} catch (std::runtime_error) {
+			} catch (std::runtime_error&) {
 				LOG("The file " << filename << " is includes itself (directly or indirectly).", LOG_EXTRA_VERBOSE);
 				LOG("current include stack: ", LOG_EXTRA_VERBOSE);
 				for(StrVec::iterator it = stack.begin(); it != stack.end(); it++){
