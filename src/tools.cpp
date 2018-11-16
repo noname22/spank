@@ -162,19 +162,21 @@ int Tools::execute(std::string cmd, std::string stdFile, std::string errFile)
 	return system(tmpCmd.c_str());
 }
 
-std::string Tools::joinStrings(std::vector<std::string> & strs, std::string separator)
+std::string Tools::joinStrings(std::vector<std::string>& strs, const std::string& separator, const std::string& quote)
 {
 	std::string ret;
 	bool first = true;
 
-	for(std::vector<std::string>::iterator it = strs.begin(); it != strs.end(); it++){
+	for(auto str : strs){
 		if(first){
 			first = false;
 		}else{
 			ret.append(separator);
 		}
 
-		ret.append(*it);
+		ret.append(quote);
+		ret.append(str);
+		ret.append(quote);
 	}
 
 	return ret;

@@ -12,6 +12,7 @@
 #include <sstream>
 #include <algorithm>
 #include <cstdlib>
+#include <iomanip>
 #include "settings.h"
 #include "tools.h"
 #include "macros.h"
@@ -113,26 +114,24 @@ std::string Config::getEntryTypeName(int type)
 
 void Config::dumpConfig()
 {
+	unsigned maxKeyLen = 0;
+
+	for(auto& item : configItems)
+		maxKeyLen = item.first.size() > maxKeyLen ? item.first.size() : maxKeyLen;
+	
 	LOG("", LOG_INFO);
 	LOG("Current config", LOG_INFO);
 	LOG("", LOG_INFO);
-		LOG("[   origin   ] item(num vals) =\t\"value 1\"(, \"value 2\", \"value 3\", ..., \"value n\")", LOG_INFO);
+	LOG("[   origin   ] " << std::left << std::setw(maxKeyLen + 1) << "item" << 
+		"\"value 1\" (, \"value 2\", \"value 3\", ..., \"value n\")", LOG_INFO);
+
 	LOG("", LOG_INFO);
 
-	for(std::map<std::string, ConfigItem>::iterator it = configItems.begin(); it != configItems.end(); it++){
-		std::ostringstream tmp;
-		tmp << "[" << getEntryTypeName(it->second.type) << "] " << it->second.key << "(" << it->second.value.size() << ")" << " =\t";
-		bool first = true;
 
-		for(std::vector<std::string>::iterator vit = it->second.value.begin(); vit != it->second.value.end(); vit++){
-			if(!first)
-				tmp << ", ";
-
-			tmp << "\"" << *vit << "\"";
-			first = false;
-		}
-
-		LOG(tmp.str(), LOG_INFO);
+	for(auto& item : configItems)
+	{
+		LOG("[" << getEntryTypeName(item.second.type) << "] " << std::left << std::setw(maxKeyLen + 1) << 
+			item.first << Tools::joinStrings(item.second.value, ", ", "\""), LOG_INFO);
 	}
 
 	LOG("", LOG_INFO);
