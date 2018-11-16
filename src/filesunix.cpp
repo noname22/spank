@@ -129,7 +129,7 @@ void FilesUnix::genSourceFileList(std::string dir)
 		std::string sources = PROJECT->getValueStr("sources", i2);
 		if(sources.find("/") != std::string::npos){
 			if(fileExists(sources)){
-				std::ofstream out(filelist.c_str());
+				std::ofstream out(filelist.c_str(), std::ofstream::app);
 				out << sources << std::endl;
 				out.close();
 			}else{
