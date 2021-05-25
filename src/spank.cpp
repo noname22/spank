@@ -192,8 +192,8 @@ void Spank::postBuild()
 		std::cerr << "target: " << target << std::endl;
 		std::cerr << "targettype: " << PROJECT->getValueStr("targettype") << std::endl;
 
-		std::string sep = PROJECT->getValueBool("addhyphen") ? "-" : " ", prefix;
-		prefix.append(sep);
+		std::string prefix = PROJECT->getValueBool("addhyphen") ? "-" : " ";
+		FORMSTR(sep, " " << prefix);
 
 		// cflags
 		std::cerr << "cflags: " << 
