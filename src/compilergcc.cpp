@@ -71,14 +71,12 @@ void CompilerGcc::setIncludePaths(std::string filename)
 	// re-scan include paths if there's a new language type
 	// since c/c++ have different built in include paths
 
-	if(lastLang != language){
-		incPaths[0].clear();
-		incPaths[1].clear();
-		lastLang = language;
-	}
-
-	if(incPaths[Bracket].size())
+	if(lastLang == language)
 		return;
+
+	incPaths[0].clear();
+	incPaths[1].clear();
+	lastLang = language;
 
 	std::string dashx = guessLanguage(filename) == "c++" ? " -x c++" : "";
 
@@ -142,7 +140,7 @@ bool CompilerGcc::pathIsSourcePath(const std::string& path)
 	return false;
 }
 
-std::string CompilerGcc::lookUpIncludeFile(std::string src, std::string filename, bool quoted)
+bool CompilerGcc::findIncludedFile(std::string src, std::string filename, bool quoted, std::string& outPath)
 {
 	IncPathType order[2] = {Bracket, Quoted};
 
@@ -156,16 +154,16 @@ std::string CompilerGcc::lookUpIncludeFile(std::string src, std::string filename
 
 	for(int i = 0; i < 2; i++){
 		for(StrVec::iterator it = incPaths[order[i]].begin(); it != incPaths[order[i]].end(); it++){
-			FORMSTR(test, (*it) << "/" << filename);
-			LOG("Trying: " << test, LOG_DEBUG);
-			if(FILES->fileExists(test)){
+			SETSTR(outPath, (*it) << "/" << filename);
+			LOG("Trying: " << outPath, LOG_DEBUG);
+			if(FILES->fileExists(outPath)){
 				LOG("exists", LOG_DEBUG);
-				return test;
+				return true;
 			}
 		}
 	}
 
-	throw std::runtime_error("no file");
+	return false;
 }
 
 // checks if a file needs recompilation by parsing all include directives found and checking the date of the files
@@ -202,7 +200,6 @@ bool CompilerGcc::checkRecompileRecursive(StrVec stack, std::string src, std::st
 
 		std::string line = Tools::getLineStream(f);
 
-
 		// Cut out C style comments
 		
 		size_t commentStart = line.find("/*");
@@ -221,7 +218,6 @@ bool CompilerGcc::checkRecompileRecursive(StrVec stack, std::string src, std::st
 				inComment = false;
 			}
 
-			//line = line.substr(commentStart, commentEnd + 2);
 			line.erase(commentStart, commentEnd + 2 - commentStart);
 		}
 
@@ -248,7 +244,6 @@ bool CompilerGcc::checkRecompileRecursive(StrVec stack, std::string src, std::st
 			size_t first = parse.find_first_of("\"<"); 
 			size_t last = parse.find_last_of("\">"); 
 
-			//if(first || last) ... wat. why was this here?
 			if(parse.size() < 3 || first == std::string::npos || last == std::string::npos){
 				LOG("Recursive recompile checker couldn't parse include directive, syntax error in " << src << ":" << lineNum << "?", LOG_WARNING);
 				LOG("Line: " << line, LOG_EXTRA_VERBOSE);
@@ -259,32 +254,35 @@ bool CompilerGcc::checkRecompileRecursive(StrVec stack, std::string src, std::st
 				localFirst = true;
 			}
 
-			std::string filename = parse.substr(first + 1, last - 2);
-			try { filename = lookUpIncludeFile(src, filename, localFirst); }
+			auto filename = parse.substr(first + 1, last - 2);
+			std::string path;
 
-			catch(...){
+			if(!findIncludedFile(src, filename, localFirst, path))
+			{
 				LOG("Recursive compile checker coulnd't find the included file: '" << filename << "' (at line " << lineNum << ")", LOG_EXTRA_VERBOSE);
+				continue;
 			}
 
 			// Check for circluar includes
 			// TODO windows implications with case insensitivity
 			try {
-				for(StrVec::iterator it = stack.begin(); it != stack.end(); it++){
-					if(filename == (*it)){
+				for(auto stackPath : stack){
+					if(path == stackPath){
 						throw std::runtime_error("circular");
 					}
 				}
 
-				if(checkRecompileRecursive(stack, filename, obj, depth + 1)){
+				if(checkRecompileRecursive(stack, path, obj, depth + 1)){
 					return true;
 				}
 			} catch (std::runtime_error&) {
-				LOG("The file " << filename << " is includes itself (directly or indirectly).", LOG_EXTRA_VERBOSE);
+				LOG("The file " << path << " is includes itself (directly or indirectly).", LOG_EXTRA_VERBOSE);
 				LOG("current include stack: ", LOG_EXTRA_VERBOSE);
 				for(StrVec::iterator it = stack.begin(); it != stack.end(); it++){
 					LOG(*it, LOG_EXTRA_VERBOSE);
 				}
-				LOG("then trying to include: " << filename, LOG_EXTRA_VERBOSE);
+
+				LOG("then trying to include: " << path, LOG_EXTRA_VERBOSE);
 			}
 		}
 
@@ -304,7 +302,8 @@ bool CompilerGcc::checkRecompile(std::string src, std::string obj)
 
 	if(PROJECT->getValueStr("rccheck") == "recursive" && (language == "c++" || language == "c")){
 		StrVec stack;
-		return checkRecompileRecursive(stack, src, obj);
+		bool result = checkRecompileRecursive(stack, src, obj);
+		LOG(src << ": " << (result ? "recompile" : "no recompile") , LOG_VERBOSE);
 	}
 
 	return FILES->checkRecompile(src, obj);

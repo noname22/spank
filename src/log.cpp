@@ -11,6 +11,8 @@
 #include <iostream>
 #include <iomanip>
 #include <sstream>
+#include <chrono>
+#include <ctime>
 
 Log* Log::logInstance = NULL;
 
@@ -54,13 +56,16 @@ void Log::log(std::string file, std::string function, int line, std::string msg,
 		if(!found)
 			return;
 	}
-
+	
 	if(severity >= logLevel){
 		std::ostream* out = severity >= LOG_WARNING ? &std::cerr : &std::cout;
 
 		if(severity >= LOG_WARNING || logLevel <= LOG_EXTRA_VERBOSE)
-			*out << "[ " << std::left << std::setw(7) << getSeverityName(severity) << " ] ";
-		
+		{
+			auto time = std::time(nullptr);
+			*out << "[ " << std::left << std::setw(7) << getSeverityName(severity) << " ] " << std::put_time(std::localtime(&time), "%F %T%z") << " ";
+		}
+
 		if(logLevel <= LOG_EXTRA_VERBOSE){
 			std::stringstream ss;
 			ss << file << ":" << line << " " << function;

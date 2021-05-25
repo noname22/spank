@@ -53,16 +53,25 @@ std::string Files::strFromFile(std::string fileName)
 bool Files::checkRecompile(std::string src, std::string obj)
 {
 	LOG("files check recompile '" << src << "' ... '" << obj << "'", LOG_DEBUG);	
+
 	if(!fileExists(obj)){
 		LOG("object doesn't exist -> recompile", LOG_DEBUG);
 		return true;
 	}
 
-	if(getDate(src) <= getDate(obj)){
-		LOG("object is older than source, recompile", LOG_DEBUG);
+	auto srcDate = getDate(src);
+	auto objDate = getDate(obj);
+
+	LOG("source date: " << srcDate, LOG_DEBUG);
+	LOG("object date: " << objDate, LOG_DEBUG);
+
+	if(srcDate <= objDate){
+		LOG("source is older than object -> don't recompile", LOG_DEBUG);
 		return false;
 	}
-	LOG("source is older than object, don't recompile", LOG_DEBUG);
+
+	LOG("object is older than source -> recompile", LOG_DEBUG);
+
 	return true;
 }
 	
