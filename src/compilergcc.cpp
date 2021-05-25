@@ -303,7 +303,7 @@ bool CompilerGcc::checkRecompile(std::string src, std::string obj)
 	if(PROJECT->getValueStr("rccheck") == "recursive" && (language == "c++" || language == "c")){
 		StrVec stack;
 		bool result = checkRecompileRecursive(stack, src, obj);
-		LOG(src << ": " << (result ? "recompile" : "no recompile") , LOG_VERBOSE);
+		LOG(src << ": " << (result ? "recompile" : "no recompile") , LOG_EXTRA_VERBOSE);
 	}
 
 	return FILES->checkRecompile(src, obj);
