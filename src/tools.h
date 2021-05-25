@@ -48,6 +48,7 @@ class Tools
 	static std::string joinStrings(StrVec & strs, const std::string& separator = " ", const std::string& quote = "");
 	static std::vector<std::string> splitString(std::string str, char separator = ' ', int max = -1);
 	static std::string restOfString(std::string str, std::string startsWith);
+	static bool startsWith(std::string str, std::string startsWith);
 
 	static std::vector<std::string> makeStrVector(std::string a);
 	static std::vector<std::string> makeStrVector(std::string a, std::string b);

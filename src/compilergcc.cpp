@@ -103,7 +103,14 @@ void CompilerGcc::setIncludePaths(std::string filename)
 
 		if(line == "#include <...> search starts here:" || line == "#include \"...\" search starts here:"){ i++; continue; }
 		if(line == "End of search list."){ break; }
-		if(i >= 0){ incPaths[i].push_back(line.substr(1)); }
+		if(i >= 0){
+			auto path = line.substr(1);
+
+			if(pathIsSourcePath(path))
+			{
+				incPaths[i].push_back(path);
+			}
+		}
 		
 		if(!s.good()){
 			throw CompilerException("EOF without End of search list");
@@ -116,6 +123,23 @@ void CompilerGcc::setIncludePaths(std::string filename)
 			LOG((*it), LOG_DEBUG);
 		}
 	}
+}
+
+bool CompilerGcc::pathIsSourcePath(const std::string& path)
+{
+	auto realPath = FILES->realpath(path);
+
+	for(auto srcPath : PROJECT->getValues("sourcedir"))
+	{
+		auto realSourcePath = FILES->realpath(srcPath);
+
+		if(Tools::startsWith(realPath, realSourcePath))
+		{
+			return true;
+		}
+	}
+
+	return false;
 }
 
 std::string CompilerGcc::lookUpIncludeFile(std::string src, std::string filename, bool quoted)

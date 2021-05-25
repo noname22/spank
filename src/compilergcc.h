@@ -55,6 +55,7 @@ class CompilerGcc: public Compiler
 	bool hasPkgConfig;
 	enum IncPathType { Quoted, Bracket };
 	StrVec incPaths[2]; // first is quoted paths, second is <> paths
+	bool pathIsSourcePath(const std::string& path);
 };
 
 #endif

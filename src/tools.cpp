@@ -227,6 +227,11 @@ std::string Tools::restOfString(std::string str, std::string startsWith)
 
 	return "";
 }
+	
+bool Tools::startsWith(std::string str, std::string startsWith)
+{
+	return str.length() >= startsWith.length() && str.substr(0, startsWith.length()) == startsWith;
+}
 		
 int Tools::execute(std::string cmd, std::string* out, std::string* err, bool supress)
 {
